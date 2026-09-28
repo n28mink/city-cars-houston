@@ -139,14 +139,20 @@
     return v.type === currentFilter;
   }
 
+  function photoSrc(p, size) {
+    // p: base local ("tahoe-rst-rojo-1") o URL externa (Drive). size: "640"|"1200".
+    if (/^https?:\/\//i.test(p)) return { src: p, srcset: p };
+    var base = IMG + p;
+    return { src: base + "-" + size + ".webp", srcset: base + "-640.webp 640w, " + base + "-1200.webp 1200w" };
+  }
   function gallery(v) {
     var g = el("div", { "class": "gallery" });
     var slides = el("div", { "class": "slides", tabindex: "0", "aria-label": fullName(v) });
     v.photos.forEach(function (p, i) {
-      var base = IMG + p;
+      var ph = photoSrc(p, "640");
       var img = el("img", {
-        src: base + "-640.webp",
-        srcset: base + "-640.webp 640w, " + base + "-1200.webp 1200w",
+        src: ph.src,
+        srcset: ph.srcset,
         sizes: "(max-width: 700px) 100vw, 400px",
         width: "640", height: "427", loading: "lazy", decoding: "async",
         alt: fullName(v) + " " + v.color[LANG].toLowerCase() + (i === 0 ? T.altFront : T.altBack)
@@ -266,10 +272,10 @@
 
     var gal = el("div", { "class": "modal-gallery" });
     v.photos.forEach(function (p, i) {
-      var base = IMG + p;
+      var phm = photoSrc(p, "1200");
       gal.appendChild(el("img", {
-        src: base + "-1200.webp",
-        srcset: base + "-640.webp 640w, " + base + "-1200.webp 1200w",
+        src: phm.src,
+        srcset: phm.srcset,
         sizes: "(max-width: 700px) 100vw, 700px",
         loading: "lazy", decoding: "async",
         alt: fullName(v) + " " + v.color[LANG].toLowerCase() + (i === 0 ? T.altFront : T.altBack)

@@ -5,7 +5,7 @@
   // ---------- Textos dinámicos ----------
   var I18N = {
     es: {
-      types: { suv: "SUV", truck: "Troca" }, used: "Usado",
+      types: { suv: "SUV", truck: "Troca", sedan: "Sedán" }, used: "Usado",
       miles: "millas",
       drive: "Tracción", driveTbd: "por confirmar", seen: "Se ve en las fotos", ideal: "Ideal para",
       dealerGeneric: "La ofrece un dealer con licencia en Houston.", dealerNamed: "La ofrece: ",
@@ -49,7 +49,7 @@
       calcNote: "Estimado educativo. Impuestos, cargos y el APR real los define el dealer o el financiador."
     },
     en: {
-      types: { suv: "SUV", truck: "Truck" }, used: "Used",
+      types: { suv: "SUV", truck: "Truck", sedan: "Sedan" }, used: "Used",
       miles: "miles",
       drive: "Drive", driveTbd: "to be confirmed", seen: "Visible in the photos", ideal: "Great for",
       dealerGeneric: "Offered by a licensed Houston dealer.", dealerNamed: "Offered by: ",

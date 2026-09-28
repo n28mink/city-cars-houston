@@ -1,13 +1,16 @@
 /* City Cars Houston TX — Asistente del sitio (versión gratis, sin IA externa).
- * Identidad: el puente (verde #0F5A3C, dorado #F5B700). Responde con VEHICLES.
- * Incluye captura de ficha: genera la ficha del interesado y la manda a
- * WhatsApp con un enlace wa.me prellenado (el visitante la envía con un toque).
+ * Identidad: el puente (verde #0F5A3C, dorado #F5B700). Responde con VEHICLES
+ * y con el contenido del sitio (cómo funciona, financiamiento, documentos).
+ * Genera links individuales por vehículo (?vehiculo=<slug>).
+ * Captura de ficha: genera la ficha y la manda a WhatsApp con wa.me prellenado.
+ * Nunca inventa precios, mensualidades, APR ni disponibilidad.
  */
 (function () {
   'use strict';
 
   var WA_NUMBER = '12816027044';
   var WA_LINK = 'https://wa.me/' + WA_NUMBER;
+  var LIST_MAX = 8;
 
   function lang() {
     try {
@@ -25,6 +28,16 @@
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
   function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
+  /* Link individual del vehículo: la página ya resuelve ?vehiculo=<slug> */
+  function pageBase() {
+    try { return String(location.href).split('?')[0].split('#')[0]; }
+    catch (e) { return ''; }
+  }
+  function vehLink(v) {
+    var b = pageBase();
+    return b ? b + '?vehiculo=' + encodeURIComponent(v.slug) : '';
+  }
+
   /* Puente mini (SVG inline, blanco + dorado sobre verde) */
   function bridgeSVG(size) {
     return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 64 64" aria-hidden="true">' +
@@ -36,24 +49,32 @@
 
   /* ---------------- Intenciones ---------------- */
   var INTENTS = [
-    ['price', /(precio|price|costo|cuanto cuesta|cuánto|down\s*payment|inicial|enganche|mensual|financiamiento|financing|apr|cuanto al mes)/],
+    ['financing', /(itin|sin credito|credito dañado|credito danado|no tengo credito|mal credito|sin seguro|no social|matricula consular|pasaporte|repo|bancarrota|efectivo|por mi cuenta|aprobacion|aprobación|financiamiento|financing|financiar|credit)/],
+    ['price', /(precio|price|costo|cuanto cuesta|cuánto|down\s*payment|inicial|enganche|mensual|apr|cuanto al mes|cuanto de inicial)/],
+    ['docs', /(documentos|documents|que necesito|requisitos|requirements|papeles|identificacion|licencia)/],
+    ['how', /(como funciona|cómo funciona|como trabaja|how (does|it) work|que es city cars|qué es city cars|quienes son|quiénes son)/],
+    ['dealer', /(son dealer|es dealer|son un dealer|dealership|concesionario|venden ustedes|ustedes venden)/],
+    ['scam', /(estafa|scam|fraude|confiable|seguro|legitimo|legítimo|fake)/],
+    ['sedan', /(sedan|sedán|carro chico|altima|civic|corolla|sentra|jetta)/],
+    ['truck', /(troca|truck|pickup|camioneta|pick up|f-?150|silverado|\bram\b|sierra|tundra)/],
+    ['suv', /(suv|tahoe|yukon|suburban|wrangler|compass|wagoneer|expedition|escalade)/],
     ['fourbyfour', /(4x4|4 x 4|doble traccion|four wheel|awd|4wd)/],
     ['rows3', /(3 filas|tercera fila|third row|7 pasajeros|8 pasajeros|7 seats|8 seats|familiar|family)/],
     ['interest', /(me interesa|me gusta|lo quiero|quiero (ese|este|esa|esta)|más info|mas info|me lo aparto|apartamelo|como le hago|i'm interested|i am interested|i want (it|this|that|more info)|interested in)/],
     ['lead', /(dejar (mis )?datos|ficha|contactame|contáctame|contact me|call me|llamame|llámame|quiero que me (llamen|contacten)|me pueden llamar)/],
-    ['list', /(que carros|qué carros|que tienen|inventario|catalogo|catálogo|ver carros|show.*cars|what.*have|list|cars|opciones|options)/],
-    ['contact', /(whatsapp|contacto|contact|hablar|llamar|call|telefono|phone|numero|number)/],
+    ['list', /(que carros|qué carros|que tienen|inventario|catalogo|catálogo|ver carros|show.*cars|what.*have|list|cars|opciones|options|todos)/],
+    ['contact', /(whatsapp|contacto|contact|hablar con alguien|llamar|call|telefono|phone|numero|number)/],
     ['location', /(donde|dónde|where|ubicaci|location|direccion|address|houston)/],
-    ['hours', /(horario|hours|abierto|open|cuando abren)/],
-    ['greeting', /(hola|hello|hi|buenas|buenos dias|good morning|buenas tardes|good afternoon)/],
+    ['hours', /(horario|hours|abierto|open|cuando abren|a que hora)/],
+    ['greeting', /(hola|\bhello\b|\bhi\b|buenas|buenos dias|good morning|buenas tardes|good afternoon)/],
   ];
 
   function classify(text) {
     var t = norm(text);
+    if (findVehicle(text, vehicles())) return 'vehicle';
     for (var i = 0; i < INTENTS.length; i++) {
       if (INTENTS[i][1].test(t)) return INTENTS[i][0];
     }
-    if (findVehicle(text, vehicles())) return 'vehicle';
     return 'fallback';
   }
 
@@ -80,100 +101,175 @@
     var s = v.seen && (v.seen[l] || v.seen.es);
     return Array.isArray(s) ? s.join(', ') : '';
   }
+  function vType(v, l) {
+    var m = { truck: { es: 'Troca', en: 'Truck' }, suv: { es: 'SUV', en: 'SUV' }, sedan: { es: 'Sedán', en: 'Sedan' } };
+    return (m[v.type] && m[v.type][l]) || v.type;
+  }
+  function vLine(v, l) {
+    var milesWord = l === 'en' ? 'miles' : 'millas';
+    var link = vehLink(v);
+    var name = link ? '<a href="' + link + '" target="_blank" rel="noopener">' + esc(vName(v)) + '</a>' : esc(vName(v));
+    return '• ' + name + ' — ' + esc(vColor(v, l)) + ', ' + esc(v.miles) + ' ' + milesWord;
+  }
 
-  /* ---------------- Respuestas ---------------- */
+  /* ---------------- Respuestas (contenido real del sitio + inventario) ---------------- */
   var T = {
     es: {
       greeting: [
-        '¡Hola! 👋 Soy el asistente de City Cars Houston, el puente que te conecta con dealers en Houston. ¿Buscas troca o SUV?',
-        '¡Hola! ¿Cómo estás? Te muestro nuestras trocas y SUVs, o si ya te gustó alguna, dime y te ayudo con tu ficha.',
+        '¡Hola! 👋 Soy el asistente de City Cars Houston, el puente que te conecta con dealers en Houston. ¿Buscas troca, SUV o sedán?',
+        '¡Hola! ¿Cómo estás? Tenemos trocas, SUVs y sedanes. Dime qué buscas o toca "🚗 Carros" para ver el inventario.',
       ],
       list: function (list) {
-        var lines = list.map(function (v, i) {
-          return (i + 1) + '. ' + vName(v) + ' — ' + vColor(v, 'es') + ', ' + v.miles + ' millas';
-        });
-        return 'Esto es lo que tenemos ahora mismo:<br><br>' + lines.join('<br>') +
-          '<br><br>¿Te interesa alguno? Pregúntame por el modelo o dime "me interesa".';
+        var shown = list.slice(0, LIST_MAX);
+        var lines = shown.map(function (v) { return vLine(v, 'es'); });
+        var more = list.length > LIST_MAX
+          ? '<br><br>…y ' + (list.length - LIST_MAX) + ' más. Dime qué buscas (troca, SUV, sedán, 4x4, 3 filas) y te muestro.'
+          : '';
+        return 'Tenemos <b>' + list.length + ' vehículos</b>. Aquí van algunos:<br><br>' + lines.join('<br>') + more +
+          '<br><br>Toca el nombre para ver fotos y detalles de cada uno.';
+      },
+      typeList: function (list, typeEs) {
+        var f = list.filter(function (v) { return v.type === typeEs; });
+        if (!f.length) return 'Ahorita no tengo ' + typeEs + ' en el inventario. Pregunta por WhatsApp y te confirmamos.';
+        var shown = f.slice(0, LIST_MAX);
+        var more = f.length > LIST_MAX ? '<br><br>…y ' + (f.length - LIST_MAX) + ' más. Dime un modelo y te doy detalles.' : '';
+        return 'Tenemos <b>' + f.length + '</b> ' + typeEs + ':<br><br>' +
+          shown.map(function (v) { return vLine(v, 'es'); }).join('<br>') + more;
       },
       vehicle: function (v) {
+        var milesWord = 'millas';
+        var link = vehLink(v);
         return '🚗 <b>' + esc(vName(v)) + '</b><br>' +
+          '• Tipo: ' + esc(vType(v, 'es')) + '<br>' +
           '• Color: ' + esc(vColor(v, 'es')) + '<br>' +
-          '• Millas: ' + esc(v.miles) + '<br>' +
+          '• Millas: ' + esc(v.miles) + ' ' + milesWord + '<br>' +
           '• Asientos: ' + esc(vSeats(v, 'es')) +
-          (vSeen(v, 'es') ? '<br>• Destaca: ' + esc(vSeen(v, 'es')) : '') +
+          (v.drive === '4x4' ? '<br>• Tracción: 4x4' : '') +
+          (vSeen(v, 'es') ? '<br>• Se ve: ' + esc(vSeen(v, 'es')) : '') +
+          (link ? '<br><br>🔗 <a href="' + link + '" target="_blank" rel="noopener">Ver ficha completa con fotos</a>' : '') +
           '<br><br>¿Te interesa? Dime "me interesa" y te tomo tus datos para que el dealer te contacte.';
       },
       fourbyfour: function (list) {
         var f = list.filter(function (v) { return v.drive === '4x4'; });
         if (!f.length) return 'Ahorita no tengo 4x4 confirmados en el inventario, pero pregúntanos por WhatsApp y te confirmamos.';
-        return 'Tenemos estos 4x4:<br><br>' + f.map(function (v) { return '• ' + esc(vName(v)) + ' (' + esc(v.miles) + ' millas)'; }).join('<br>') +
-          '<br><br>¿Quieres detalles de alguno?';
+        var shown = f.slice(0, LIST_MAX);
+        return 'Tenemos <b>' + f.length + '</b> 4x4:<br><br>' +
+          shown.map(function (v) { return vLine(v, 'es'); }).join('<br>') +
+          '<br><br>¿Quieres detalles de alguno? Toca el nombre.';
       },
       rows3: function (list) {
         var f = list.filter(function (v) { return v.rows3; });
-        return 'Para familia con 3 filas tenemos:<br><br>' + f.map(function (v) { return '• ' + esc(vName(v)) + ' — ' + esc(vSeats(v, 'es')); }).join('<br>') +
+        return 'Para familia con 3 filas tenemos:<br><br>' +
+          f.map(function (v) { return vLine(v, 'es'); }).join('<br>') +
           '<br><br>¿Te interesa alguno?';
       },
       price: [
-        'Los precios y planes los manejan directamente los dealers con licencia. Te conecto por WhatsApp y te dan todos los detalles 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">escríbenos</a>.',
+        'No publicamos precios en la página: cada dealer con licencia maneja los suyos. Lo que sí te puedo decir de cada vehículo es el año, las millas, el color y los detalles visibles. El dealer te da por escrito el precio, la inicial y los términos antes de firmar. ¿De cuál quieres detalles? O déjame tus datos con "📝 Dejar mis datos" y te contactan.',
+      ],
+      financing: [
+        'Buena noticia: muchos de nuestros dealers trabajan con <b>ITIN, sin crédito o crédito dañado</b>, y también con matrícula consular o pasaporte. La aprobación la decide el dealer o el financiador según tu caso. Cuéntanos tu situación por WhatsApp 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">aquí</a> y te decimos con honestidad qué esperar.',
+      ],
+      docs: [
+        'Normalmente piden: <b>una identificación, un comprobante de ingresos y uno de domicilio</b>. El dealer te dice exactamente cuáles. Ojo: aquí nunca te pedimos números de documentos.',
+      ],
+      how: [
+        'Así funciona el puente, en 4 salidas:<br><b>1.</b> Nos cuentas tu caso (plan de 1 minuto o WhatsApp).<br><b>2.</b> Te conectamos con dealers con licencia en Houston que trabajan con tu situación.<br><b>3.</b> Vas a ver el vehículo al dealer, con tu familia si quieres.<br><b>4.</b> El dealer te da los números por escrito: aprobación, precio, inicial y términos.',
+      ],
+      dealer: [
+        'No somos dealer: <b>te conectamos con dealers con licencia en Texas</b>. Ellos venden los vehículos y, con sus financiadores, deciden la aprobación y los términos.',
+      ],
+      scam: [
+        'Nuestro único WhatsApp oficial es el <b>(281) 602-7044</b>. Nunca pedimos número de Social ni depósitos por WhatsApp. Si alguien te pide eso en nuestro nombre, no somos nosotros.',
       ],
       contact: [
-        'Claro, escríbenos por WhatsApp y te atendemos 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">' + WA_LINK + '</a>',
+        'Escríbenos por WhatsApp al <b>(281) 602-7044</b> 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">' + WA_LINK + '</a>',
       ],
       location: [
-        'Trabajamos con dealers con licencia en Houston, TX. Escríbenos por WhatsApp y te conectamos con el más cercano 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">aquí</a>.',
+        'Trabajamos con <b>dealers con licencia en Houston, TX</b>. Cuando eliges un vehículo, te conectamos con el dealer para que vayas a verlo.',
       ],
       hours: [
-        'Por WhatsApp te respondemos todos los días. Escríbenos cuando quieras 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">aquí</a>.',
+        'No tenemos un horario fijo publicado: escríbenos por WhatsApp cuando quieras 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">aquí</a> y te respondemos.',
       ],
       fallback: [
-        'Mmm, no estoy seguro de eso. Escríbenos por WhatsApp y una persona te ayuda 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">aquí</a>. También puedes pedirme la lista de carros o dejarme tus datos.',
+        'Mmm, de eso no tengo el dato exacto. Puedo mostrarte el inventario, detalles de cada vehículo, cómo funciona el puente o tomarte tus datos. ¿Qué te gustaría?',
       ],
     },
     en: {
       greeting: [
-        'Hi! 👋 I\'m the City Cars Houston assistant, the bridge that connects you with dealers in Houston. Looking for a truck or SUV?',
+        'Hi! 👋 I\'m the City Cars Houston assistant, the bridge that connects you with dealers in Houston. Looking for a truck, SUV or sedan?',
       ],
       list: function (list) {
-        var lines = list.map(function (v, i) {
-          return (i + 1) + '. ' + vName(v) + ' — ' + vColor(v, 'en') + ', ' + v.miles + ' miles';
-        });
-        return 'Here\'s what we have right now:<br><br>' + lines.join('<br>') +
-          '<br><br>Interested in any? Ask me about the model or say "I\'m interested".';
+        var shown = list.slice(0, LIST_MAX);
+        var lines = shown.map(function (v) { return vLine(v, 'en'); });
+        var more = list.length > LIST_MAX
+          ? '<br><br>…and ' + (list.length - LIST_MAX) + ' more. Tell me what you\'re looking for (truck, SUV, sedan, 4x4, 3 rows).'
+          : '';
+        return 'We have <b>' + list.length + ' vehicles</b>. Here are some:<br><br>' + lines.join('<br>') + more +
+          '<br><br>Tap a name to see photos and details.';
+      },
+      typeList: function (list, typeEs) {
+        var f = list.filter(function (v) { return v.type === typeEs; });
+        if (!f.length) return 'I don\'t have ' + typeEs + ' in stock right now. Ask on WhatsApp and we\'ll confirm.';
+        var shown = f.slice(0, LIST_MAX);
+        var more = f.length > LIST_MAX ? '<br><br>…and ' + (f.length - LIST_MAX) + ' more. Name a model for details.' : '';
+        return 'We have <b>' + f.length + '</b> ' + typeEs + ':<br><br>' +
+          shown.map(function (v) { return vLine(v, 'en'); }).join('<br>') + more;
       },
       vehicle: function (v) {
+        var link = vehLink(v);
         return '🚗 <b>' + esc(vName(v)) + '</b><br>' +
+          '• Type: ' + esc(vType(v, 'en')) + '<br>' +
           '• Color: ' + esc(vColor(v, 'en')) + '<br>' +
           '• Miles: ' + esc(v.miles) + '<br>' +
           '• Seats: ' + esc(vSeats(v, 'en')) +
-          (vSeen(v, 'en') ? '<br>• Highlights: ' + esc(vSeen(v, 'en')) : '') +
+          (v.drive === '4x4' ? '<br>• Drive: 4x4' : '') +
+          (vSeen(v, 'en') ? '<br>• Visible: ' + esc(vSeen(v, 'en')) : '') +
+          (link ? '<br><br>🔗 <a href="' + link + '" target="_blank" rel="noopener">See full listing with photos</a>' : '') +
           '<br><br>Interested? Say "I\'m interested" and I\'ll take your info so the dealer can contact you.';
       },
       fourbyfour: function (list) {
         var f = list.filter(function (v) { return v.drive === '4x4'; });
         if (!f.length) return 'I don\'t have confirmed 4x4s in stock right now, but ask us on WhatsApp and we\'ll confirm.';
-        return 'We have these 4x4s:<br><br>' + f.map(function (v) { return '• ' + esc(vName(v)) + ' (' + esc(v.miles) + ' miles)'; }).join('<br>') +
-          '<br><br>Want details on any of them?';
+        var shown = f.slice(0, LIST_MAX);
+        return 'We have <b>' + f.length + '</b> 4x4s:<br><br>' +
+          shown.map(function (v) { return vLine(v, 'en'); }).join('<br>') +
+          '<br><br>Want details on any? Tap the name.';
       },
       rows3: function (list) {
         var f = list.filter(function (v) { return v.rows3; });
-        return 'For families, these have 3 rows:<br><br>' + f.map(function (v) { return '• ' + esc(vName(v)) + ' — ' + esc(vSeats(v, 'en')); }).join('<br>') +
+        return 'For families, these have 3 rows:<br><br>' +
+          f.map(function (v) { return vLine(v, 'en'); }).join('<br>') +
           '<br><br>Interested in any?';
       },
       price: [
-        'Prices and plans are handled directly by licensed dealers. I\'ll connect you on WhatsApp for full details 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">message us</a>.',
+        'We don\'t publish prices on the site: each licensed dealer sets their own. What I can tell you about each vehicle is the year, miles, color and visible details. The dealer gives you the price, down payment and terms in writing before you sign. Which one do you want details on? Or leave your info with "📝 Leave my info" and they\'ll contact you.',
+      ],
+      financing: [
+        'Good news: many of our dealers work with <b>ITIN, no credit or damaged credit</b>, and also with consular ID or passport. Approval is decided by the dealer or lender based on your case. Tell us your situation on WhatsApp 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">here</a> and we\'ll tell you honestly what to expect.',
+      ],
+      docs: [
+        'They usually ask for: <b>an ID, proof of income and proof of address</b>. The dealer tells you exactly which ones. Note: we never ask for document numbers here.',
+      ],
+      how: [
+        'Here\'s how the bridge works, in 4 steps:<br><b>1.</b> Tell us your case (1-minute plan or WhatsApp).<br><b>2.</b> We connect you with licensed dealers in Houston that work with your situation.<br><b>3.</b> You go see the vehicle at the dealer, with your family if you want.<br><b>4.</b> The dealer gives you the numbers in writing: approval, price, down payment and terms.',
+      ],
+      dealer: [
+        'We\'re not a dealer: <b>we connect you with licensed dealers in Texas</b>. They sell the vehicles and, with their lenders, decide approval and terms.',
+      ],
+      scam: [
+        'Our only official WhatsApp is <b>(281) 602-7044</b>. We never ask for a Social Security number or deposits over WhatsApp. If someone asks you for that in our name, it\'s not us.',
       ],
       contact: [
-        'Sure, message us on WhatsApp 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">' + WA_LINK + '</a>',
+        'Message us on WhatsApp at <b>(281) 602-7044</b> 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">' + WA_LINK + '</a>',
       ],
       location: [
-        'We work with licensed dealers in Houston, TX. Message us on WhatsApp and we\'ll connect you with the nearest one 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">here</a>.',
+        'We work with <b>licensed dealers in Houston, TX</b>. When you pick a vehicle, we connect you with the dealer so you can go see it.',
       ],
       hours: [
-        'We reply on WhatsApp every day. Message us anytime 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">here</a>.',
+        'We don\'t have fixed published hours: message us on WhatsApp anytime 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">here</a> and we\'ll reply.',
       ],
       fallback: [
-        'Hmm, not sure about that one. Message us on WhatsApp and a person will help 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">here</a>. You can also ask for the car list or leave your info.',
+        'Hmm, I don\'t have the exact info on that. I can show you the inventory, details on each vehicle, how the bridge works, or take your info. What would you like?',
       ],
     },
   };
@@ -188,6 +284,7 @@
       if (v) return T[l].vehicle(v);
       return pick(T[l].fallback);
     }
+    if (intent === 'truck' || intent === 'suv' || intent === 'sedan') return T[l].typeList(list, intent);
     if (typeof t === 'function') return t(list);
     return pick(t);
   }
@@ -218,7 +315,6 @@
       },
       restart: 'Let\'s start over. What\'s your name?',
       cancel: 'No problem, I\'m here if you need me 👍',
-      cancelWord: 'cancel',
       done: function (link) {
         return 'Done! 🎉 Tap the button to send us your info on WhatsApp:<br><br><a class="cch-wa-btn" href="' + link + '" target="_blank" rel="noopener">📲 Send my info on WhatsApp</a><br><br><span class="cch-small">WhatsApp will open with your info ready, just hit send.</span>';
       },
@@ -425,6 +521,6 @@
   window.CCHAssistant = {
     classify: classify, findVehicle: findVehicle, buildReply: buildReply,
     leadStart: leadStart, leadStep: leadStep, fichaText: fichaText, fichaLink: fichaLink,
-    bridgeSVG: bridgeSVG, WA_NUMBER: WA_NUMBER,
+    bridgeSVG: bridgeSVG, vehLink: vehLink, WA_NUMBER: WA_NUMBER,
   };
 })();
