@@ -193,11 +193,14 @@
     if (!list.length) { grid.appendChild(el("p", { "class": "lead" }, T.empty)); return; }
     list.forEach(function (v) {
       var card = el("article", { "class": "car", id: v.slug, "aria-label": fullName(v) });
+      var sheetUrl = (LANG === "en" ? "car/" : "carro/") + v.slug + "/";
       card.appendChild(gallery(v));
 
       var body = el("div", { "class": "car-body" });
       var head = el("div");
-      head.appendChild(el("h3", null, fullName(v)));
+      var h3 = el("h3", null);
+      h3.appendChild(el("a", { href: sheetUrl }, fullName(v)));
+      head.appendChild(h3);
       head.appendChild(el("p", { "class": "car-sub" }, v.color[LANG] + " • ID " + v.id));
       body.appendChild(head);
 
@@ -232,8 +235,7 @@
       ask.href = waLink(T.waCar(label(v)));
       var plan = el("button", { type: "button", "class": "btn btn-ghost", "aria-label": T.plan + ": " + fullName(v) }, T.plan);
       plan.addEventListener("click", function () { selectVehicle(v.slug); goPlan(); });
-      var more = el("button", { type: "button", "class": "btn btn-ghost", "aria-label": T.details + ": " + fullName(v) }, T.details);
-      more.addEventListener("click", function () { openDetail(v, more); });
+      var more = el("a", { "class": "btn btn-ghost", href: sheetUrl, "aria-label": T.fullSheet + ": " + fullName(v) }, T.fullSheet);
       actions.appendChild(ask); actions.appendChild(plan); actions.appendChild(more);
       body.appendChild(actions);
       card.appendChild(body);
@@ -311,6 +313,9 @@
     modalContent.appendChild(ideal);
 
     var actions = el("div", { "class": "modal-actions" });
+    var msheetUrl = (LANG === "en" ? "car/" : "carro/") + v.slug + "/";
+    var sheet = el("a", { "class": "btn btn-ghost", href: msheetUrl }, T.fullSheet);
+    actions.appendChild(sheet);
     var ask = el("a", { "class": "btn btn-wa", target: "_blank", rel: "noopener noreferrer", "aria-label": T.ask + ": " + fullName(v) }, T.ask);
     ask.href = waLink(T.waCar(label(v)));
     var plan = el("button", { type: "button", "class": "btn btn-ghost" }, T.plan);
