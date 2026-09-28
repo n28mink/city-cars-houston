@@ -28,14 +28,29 @@
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
   function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
-  /* Link individual del vehículo: la página ya resuelve ?vehiculo=<slug> */
-  function pageBase() {
-    try { return String(location.href).split('?')[0].split('#')[0]; }
-    catch (e) { return ''; }
+  /* Link individual del vehículo: ficha propia es/carro/<slug>/ o en/car/<slug>/ */
+  function siteRoot() {
+    try {
+      var h = String(location.href).split('?')[0].split('#')[0];
+      var m = h.match(/^(.*\/(es|en))(\/|$)/);
+      if (m) return { root: m[1] + '/', lang: m[2] };
+    } catch (e) { /* noop */ }
+    return { root: '', lang: lang() };
   }
   function vehLink(v) {
-    var b = pageBase();
-    return b ? b + '?vehiculo=' + encodeURIComponent(v.slug) : '';
+    var r = siteRoot();
+    if (!r.root) return '';
+    return r.root + (r.lang === 'en' ? 'car/' : 'carro/') + encodeURIComponent(v.slug) + '/';
+  }
+  function vMotor(v, l) {
+    try {
+      var sp = window.SPECS && window.SPECS[v.slug];
+      if (sp) {
+        var m = l === 'en' ? sp.motor_en : sp.motor_es;
+        if (m && m !== 'Por confirmar' && m !== 'To be confirmed') return m;
+      }
+    } catch (e) { /* noop */ }
+    return '';
   }
 
   /* Puente mini (SVG inline, blanco + dorado sobre verde) */
@@ -144,6 +159,7 @@
           '• Color: ' + esc(vColor(v, 'es')) + '<br>' +
           '• Millas: ' + esc(v.miles) + ' ' + milesWord + '<br>' +
           '• Asientos: ' + esc(vSeats(v, 'es')) +
+          (vMotor(v, 'es') ? '<br>• Motor: ' + esc(vMotor(v, 'es')) : '') +
           (v.drive === '4x4' ? '<br>• Tracción: 4x4' : '') +
           (vSeen(v, 'es') ? '<br>• Se ve: ' + esc(vSeen(v, 'es')) : '') +
           (link ? '<br><br>🔗 <a href="' + link + '" target="_blank" rel="noopener">Ver ficha completa con fotos</a>' : '') +
@@ -222,6 +238,7 @@
           '• Color: ' + esc(vColor(v, 'en')) + '<br>' +
           '• Miles: ' + esc(v.miles) + '<br>' +
           '• Seats: ' + esc(vSeats(v, 'en')) +
+          (vMotor(v, 'en') ? '<br>• Engine: ' + esc(vMotor(v, 'en')) : '') +
           (v.drive === '4x4' ? '<br>• Drive: 4x4' : '') +
           (vSeen(v, 'en') ? '<br>• Visible: ' + esc(vSeen(v, 'en')) : '') +
           (link ? '<br><br>🔗 <a href="' + link + '" target="_blank" rel="noopener">See full listing with photos</a>' : '') +
