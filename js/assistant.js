@@ -1,13 +1,13 @@
 /* City Cars Houston TX — Asistente del sitio (versión gratis, sin IA externa).
- * Responde con los datos de VEHICLES (js/vehicles.js). Bilingüe ES/EN.
- * Nunca inventa precios, mensualidades ni datos que no estén en el inventario:
- * eso se ve directo con el dealer por WhatsApp.
+ * Identidad: el puente (verde #0F5A3C, dorado #F5B700). Responde con VEHICLES.
+ * Incluye captura de ficha: genera la ficha del interesado y la manda a
+ * WhatsApp con un enlace wa.me prellenado (el visitante la envía con un toque).
  */
 (function () {
   'use strict';
 
-  var WA_LINK = 'https://wa.me/12816027044';
-  var WA_LABEL = { es: 'WhatsApp', en: 'WhatsApp' };
+  var WA_NUMBER = '12816027044';
+  var WA_LINK = 'https://wa.me/' + WA_NUMBER;
 
   function lang() {
     try {
@@ -16,20 +16,32 @@
     } catch (e) { return 'es'; }
   }
   function norm(s) {
-    return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
   function vehicles() {
     try { return Array.isArray(window.VEHICLES) ? window.VEHICLES : []; }
     catch (e) { return []; }
   }
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  /* Puente mini (SVG inline, blanco + dorado sobre verde) */
+  function bridgeSVG(size) {
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 64 64" aria-hidden="true">' +
+      '<path d="M10 42h44" stroke="#F5B700" stroke-width="4.5" stroke-linecap="round"/>' +
+      '<path d="M18 42V28M46 42V28" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/>' +
+      '<path class="cch-arc" d="M10 28c6-11 16-17 22-17s16 6 22 17" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>' +
+      '</svg>';
+  }
 
   /* ---------------- Intenciones ---------------- */
   var INTENTS = [
     ['price', /(precio|price|costo|cuanto cuesta|cuánto|down\s*payment|inicial|enganche|mensual|financiamiento|financing|apr|cuanto al mes)/],
     ['fourbyfour', /(4x4|4 x 4|doble traccion|four wheel|awd|4wd)/],
     ['rows3', /(3 filas|tercera fila|third row|7 pasajeros|8 pasajeros|7 seats|8 seats|familiar|family)/],
-    ['list', /(que carros|qué carros|que tienen|inventario|catalogo|catálogo|ver carros|show.*cars|what.*have|list|opciones|options)/],
+    ['interest', /(me interesa|me gusta|lo quiero|quiero (ese|este|esa|esta)|más info|mas info|me lo aparto|apartamelo|como le hago|i'm interested|i am interested|i want (it|this|that|more info)|interested in)/],
+    ['lead', /(dejar (mis )?datos|ficha|contactame|contáctame|contact me|call me|llamame|llámame|quiero que me (llamen|contacten)|me pueden llamar)/],
+    ['list', /(que carros|qué carros|que tienen|inventario|catalogo|catálogo|ver carros|show.*cars|what.*have|list|cars|opciones|options)/],
     ['contact', /(whatsapp|contacto|contact|hablar|llamar|call|telefono|phone|numero|number)/],
     ['location', /(donde|dónde|where|ubicaci|location|direccion|address|houston)/],
     ['hours', /(horario|hours|abierto|open|cuando abren)/],
@@ -41,7 +53,6 @@
     for (var i = 0; i < INTENTS.length; i++) {
       if (INTENTS[i][1].test(t)) return INTENTS[i][0];
     }
-    // ¿Menciona un vehículo concreto?
     if (findVehicle(text, vehicles())) return 'vehicle';
     return 'fallback';
   }
@@ -51,9 +62,7 @@
     if (!t) return null;
     var best = null, bestScore = 0;
     for (var i = 0; i < list.length; i++) {
-      var v = list[i];
-      var vt = norm(v.year + ' ' + v.make + ' ' + v.model + ' ' + (v.slug || ''));
-      var score = 0;
+      var v = list[i], score = 0;
       ['make', 'model'].forEach(function (k) {
         norm(v[k]).split(/\s+/).forEach(function (w) {
           if (w.length > 2 && t.indexOf(w) !== -1) score += (k === 'model' ? 2 : 1);
@@ -64,7 +73,7 @@
     return bestScore >= 2 ? best : null;
   }
 
-  function vName(v, l) { return (v.year + ' ' + v.make + ' ' + v.model).trim(); }
+  function vName(v) { return ((v.year || '') + ' ' + (v.make || '') + ' ' + (v.model || '')).trim(); }
   function vColor(v, l) { return (v.color && (v.color[l] || v.color.es)) || ''; }
   function vSeats(v, l) { return (v.seats && (v.seats[l] || v.seats.es)) || ''; }
   function vSeen(v, l) {
@@ -76,38 +85,37 @@
   var T = {
     es: {
       greeting: [
-        '¡Hola! 👋 Soy el asistente de City Cars Houston. ¿Buscas troca o SUV? Pregúntame por un modelo o dime qué necesitas.',
-        '¡Hola! ¿Cómo estás? Te puedo mostrar nuestras trocas y SUVs, o buscarte algo específico. ¿Qué tienes en mente?',
+        '¡Hola! 👋 Soy el asistente de City Cars Houston, el puente que te conecta con dealers en Houston. ¿Buscas troca o SUV?',
+        '¡Hola! ¿Cómo estás? Te muestro nuestras trocas y SUVs, o si ya te gustó alguna, dime y te ayudo con tu ficha.',
       ],
       list: function (list) {
         var lines = list.map(function (v, i) {
-          return (i + 1) + '. ' + vName(v, 'es') + ' — ' + vColor(v, 'es') + ', ' + v.miles + ' millas';
+          return (i + 1) + '. ' + vName(v) + ' — ' + vColor(v, 'es') + ', ' + v.miles + ' millas';
         });
         return 'Esto es lo que tenemos ahora mismo:<br><br>' + lines.join('<br>') +
-          '<br><br>¿Te interesa alguno? Pregúntame por el modelo y te doy los detalles.';
+          '<br><br>¿Te interesa alguno? Pregúntame por el modelo o dime "me interesa".';
       },
       vehicle: function (v) {
-        return '🚗 <b>' + vName(v, 'es') + '</b><br>' +
-          '• Color: ' + vColor(v, 'es') + '<br>' +
-          '• Millas: ' + v.miles + '<br>' +
-          '• Asientos: ' + vSeats(v, 'es') +
-          (vSeen(v, 'es') ? '<br>• Destaca: ' + vSeen(v, 'es') : '') +
-          '<br><br>¿Te conecto por WhatsApp con el dealer para precio y disponibilidad?';
+        return '🚗 <b>' + esc(vName(v)) + '</b><br>' +
+          '• Color: ' + esc(vColor(v, 'es')) + '<br>' +
+          '• Millas: ' + esc(v.miles) + '<br>' +
+          '• Asientos: ' + esc(vSeats(v, 'es')) +
+          (vSeen(v, 'es') ? '<br>• Destaca: ' + esc(vSeen(v, 'es')) : '') +
+          '<br><br>¿Te interesa? Dime "me interesa" y te tomo tus datos para que el dealer te contacte.';
       },
       fourbyfour: function (list) {
         var f = list.filter(function (v) { return v.drive === '4x4'; });
         if (!f.length) return 'Ahorita no tengo 4x4 confirmados en el inventario, pero pregúntanos por WhatsApp y te confirmamos.';
-        return 'Tenemos estos 4x4:<br><br>' + f.map(function (v) { return '• ' + vName(v, 'es') + ' (' + v.miles + ' millas)'; }).join('<br>') +
+        return 'Tenemos estos 4x4:<br><br>' + f.map(function (v) { return '• ' + esc(vName(v)) + ' (' + esc(v.miles) + ' millas)'; }).join('<br>') +
           '<br><br>¿Quieres detalles de alguno?';
       },
       rows3: function (list) {
         var f = list.filter(function (v) { return v.rows3; });
-        return 'Para familia con 3 filas tenemos:<br><br>' + f.map(function (v) { return '• ' + vName(v, 'es') + ' — ' + vSeats(v, 'es'); }).join('<br>') +
+        return 'Para familia con 3 filas tenemos:<br><br>' + f.map(function (v) { return '• ' + esc(vName(v)) + ' — ' + esc(vSeats(v, 'es')); }).join('<br>') +
           '<br><br>¿Te interesa alguno?';
       },
       price: [
         'Los precios y planes los manejan directamente los dealers con licencia. Te conecto por WhatsApp y te dan todos los detalles 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">escríbenos</a>.',
-        'De precios te habla directo el dealer por WhatsApp, así te da el dato exacto del carro que te guste 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">aquí</a>.',
       ],
       contact: [
         'Claro, escríbenos por WhatsApp y te atendemos 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">' + WA_LINK + '</a>',
@@ -119,39 +127,37 @@
         'Por WhatsApp te respondemos todos los días. Escríbenos cuando quieras 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">aquí</a>.',
       ],
       fallback: [
-        'Mmm, no estoy seguro de eso. Escríbenos por WhatsApp y una persona te ayuda 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">aquí</a>. También puedes preguntarme por un modelo o pedirme la lista de carros.',
-        'Esa no me la sé 😅. Por WhatsApp te responden directo 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">aquí</a>. ¿Te muestro los carros que tenemos?',
+        'Mmm, no estoy seguro de eso. Escríbenos por WhatsApp y una persona te ayuda 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">aquí</a>. También puedes pedirme la lista de carros o dejarme tus datos.',
       ],
     },
     en: {
       greeting: [
-        'Hi! 👋 I\'m the City Cars Houston assistant. Looking for a truck or SUV? Ask me about a model or tell me what you need.',
-        'Hello! How are you? I can show you our trucks and SUVs, or find something specific. What do you have in mind?',
+        'Hi! 👋 I\'m the City Cars Houston assistant, the bridge that connects you with dealers in Houston. Looking for a truck or SUV?',
       ],
       list: function (list) {
         var lines = list.map(function (v, i) {
-          return (i + 1) + '. ' + vName(v, 'en') + ' — ' + vColor(v, 'en') + ', ' + v.miles + ' miles';
+          return (i + 1) + '. ' + vName(v) + ' — ' + vColor(v, 'en') + ', ' + v.miles + ' miles';
         });
         return 'Here\'s what we have right now:<br><br>' + lines.join('<br>') +
-          '<br><br>Interested in any of them? Ask me about the model for details.';
+          '<br><br>Interested in any? Ask me about the model or say "I\'m interested".';
       },
       vehicle: function (v) {
-        return '🚗 <b>' + vName(v, 'en') + '</b><br>' +
-          '• Color: ' + vColor(v, 'en') + '<br>' +
-          '• Miles: ' + v.miles + '<br>' +
-          '• Seats: ' + vSeats(v, 'en') +
-          (vSeen(v, 'en') ? '<br>• Highlights: ' + vSeen(v, 'en') : '') +
-          '<br><br>Want me to connect you on WhatsApp with the dealer for price and availability?';
+        return '🚗 <b>' + esc(vName(v)) + '</b><br>' +
+          '• Color: ' + esc(vColor(v, 'en')) + '<br>' +
+          '• Miles: ' + esc(v.miles) + '<br>' +
+          '• Seats: ' + esc(vSeats(v, 'en')) +
+          (vSeen(v, 'en') ? '<br>• Highlights: ' + esc(vSeen(v, 'en')) : '') +
+          '<br><br>Interested? Say "I\'m interested" and I\'ll take your info so the dealer can contact you.';
       },
       fourbyfour: function (list) {
         var f = list.filter(function (v) { return v.drive === '4x4'; });
         if (!f.length) return 'I don\'t have confirmed 4x4s in stock right now, but ask us on WhatsApp and we\'ll confirm.';
-        return 'We have these 4x4s:<br><br>' + f.map(function (v) { return '• ' + vName(v, 'en') + ' (' + v.miles + ' miles)'; }).join('<br>') +
+        return 'We have these 4x4s:<br><br>' + f.map(function (v) { return '• ' + esc(vName(v)) + ' (' + esc(v.miles) + ' miles)'; }).join('<br>') +
           '<br><br>Want details on any of them?';
       },
       rows3: function (list) {
         var f = list.filter(function (v) { return v.rows3; });
-        return 'For families, these have 3 rows:<br><br>' + f.map(function (v) { return '• ' + vName(v, 'en') + ' — ' + vSeats(v, 'en'); }).join('<br>') +
+        return 'For families, these have 3 rows:<br><br>' + f.map(function (v) { return '• ' + esc(vName(v)) + ' — ' + esc(vSeats(v, 'en')); }).join('<br>') +
           '<br><br>Interested in any?';
       },
       price: [
@@ -167,7 +173,7 @@
         'We reply on WhatsApp every day. Message us anytime 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">here</a>.',
       ],
       fallback: [
-        'Hmm, not sure about that one. Message us on WhatsApp and a person will help 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">here</a>. You can also ask me about a model or for the car list.',
+        'Hmm, not sure about that one. Message us on WhatsApp and a person will help 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">here</a>. You can also ask for the car list or leave your info.',
       ],
     },
   };
@@ -186,23 +192,127 @@
     return pick(t);
   }
 
+  /* ---------------- Ficha (lead) → WhatsApp ---------------- */
+  var LEAD_TXT = {
+    es: {
+      start: '¡Perfecto! Te tomo tus datos para que el dealer te contacte. ¿Cuál es tu nombre?',
+      askPhone: function (n) { return 'Gracias, ' + n + '. ¿Cuál es tu número de WhatsApp?'; },
+      badPhone: 'Ese número no me cuadra, ¿me lo pasas de nuevo? (solo números, con código de área)',
+      askVehicle: '¿Qué carro te interesa? (dime el modelo)',
+      review: function (d) {
+        return 'Revisemos tu ficha:<br>• Nombre: <b>' + esc(d.name) + '</b><br>• WhatsApp: <b>' + esc(d.phone) + '</b><br>• Vehículo: <b>' + esc(d.vehicle) + '</b><br><br>¿Está bien? (sí / corregir)';
+      },
+      restart: 'Va de nuevo. ¿Cuál es tu nombre?',
+      cancel: 'Sin problema, aquí estoy si me necesitas 👍',
+      done: function (link) {
+        return '¡Listo! 🎉 Toca el botón para enviarnos tu ficha por WhatsApp:<br><br><a class="cch-wa-btn" href="' + link + '" target="_blank" rel="noopener">📲 Enviar mi ficha por WhatsApp</a><br><br><span class="cch-small">Se abrirá tu WhatsApp con la ficha lista, solo dale enviar.</span>';
+      },
+    },
+    en: {
+      start: 'Perfect! I\'ll take your info so the dealer can contact you. What\'s your name?',
+      askPhone: function (n) { return 'Thanks, ' + n + '. What\'s your WhatsApp number?'; },
+      badPhone: 'That number doesn\'t look right, can you send it again? (digits only, with area code)',
+      askVehicle: 'Which car are you interested in? (tell me the model)',
+      review: function (d) {
+        return 'Let\'s review your info:<br>• Name: <b>' + esc(d.name) + '</b><br>• WhatsApp: <b>' + esc(d.phone) + '</b><br>• Vehicle: <b>' + esc(d.vehicle) + '</b><br><br>Is that right? (yes / correct)';
+      },
+      restart: 'Let\'s start over. What\'s your name?',
+      cancel: 'No problem, I\'m here if you need me 👍',
+      cancelWord: 'cancel',
+      done: function (link) {
+        return 'Done! 🎉 Tap the button to send us your info on WhatsApp:<br><br><a class="cch-wa-btn" href="' + link + '" target="_blank" rel="noopener">📲 Send my info on WhatsApp</a><br><br><span class="cch-small">WhatsApp will open with your info ready, just hit send.</span>';
+      },
+    },
+  };
+
+  function todayStr(l) {
+    try {
+      var d = new Date();
+      return d.toLocaleDateString(l === 'en' ? 'en-US' : 'es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    } catch (e) { return ''; }
+  }
+
+  function fichaText(d, l) {
+    var lines = l === 'en'
+      ? ['New lead - City Cars Houston', 'Name: ' + d.name, 'Phone: ' + d.phone, 'Vehicle of interest: ' + d.vehicle, 'Date: ' + todayStr(l)]
+      : ['Nueva ficha - City Cars Houston', 'Nombre: ' + d.name, 'Teléfono: ' + d.phone, 'Vehículo de interés: ' + d.vehicle, 'Fecha: ' + todayStr(l)];
+    return lines.join('\n');
+  }
+
+  function fichaLink(d, l) {
+    return WA_LINK + '?text=' + encodeURIComponent(fichaText(d, l));
+  }
+
+  function isCancel(t) { return /(cancelar|cancel|olvídalo|olvidalo|never mind)/.test(norm(t)); }
+  function digits(s) { return (s || '').replace(/\D/g, ''); }
+
+  function leadStart(l, vehicleHint) {
+    var st = { step: 'name', data: {} };
+    if (vehicleHint) st.data.vehicle = vehicleHint;
+    return { state: st, reply: LEAD_TXT[l].start, done: false };
+  }
+
+  function leadStep(st, text, l) {
+    var txt = LEAD_TXT[l];
+    var t = (text || '').trim();
+    if (isCancel(t)) return { state: null, reply: txt.cancel, done: true, cancelled: true };
+    var d = st.data;
+
+    if (st.step === 'name') {
+      if (!t) return { state: st, reply: txt.start, done: false };
+      d.name = t.length > 40 ? t.slice(0, 40) : t;
+      st.step = 'phone';
+      return { state: st, reply: txt.askPhone(esc(d.name)), done: false };
+    }
+    if (st.step === 'phone') {
+      var dg = digits(t);
+      if (dg.length < 7 || dg.length > 15) return { state: st, reply: txt.badPhone, done: false };
+      d.phone = dg;
+      if (d.vehicle) {
+        st.step = 'review';
+        return { state: st, reply: txt.review(d), done: false };
+      }
+      st.step = 'vehicle';
+      return { state: st, reply: txt.askVehicle, done: false };
+    }
+    if (st.step === 'vehicle') {
+      var found = findVehicle(t, vehicles());
+      d.vehicle = found ? vName(found) : (t.length > 60 ? t.slice(0, 60) : t);
+      if (!d.vehicle) return { state: st, reply: txt.askVehicle, done: false };
+      st.step = 'review';
+      return { state: st, reply: txt.review(d), done: false };
+    }
+    if (st.step === 'review') {
+      var tn = norm(t);
+      if (/^(si|sí|yes|esta bien|está bien|correcto|dale|ok|claro)/.test(tn)) {
+        var link = fichaLink(d, l);
+        return { state: null, reply: txt.done(link), done: true, ficha: fichaText(d, l), link: link };
+      }
+      st.step = 'name';
+      st.data = d.vehicle ? { vehicle: d.vehicle } : {};
+      return { state: st, reply: txt.restart, done: false };
+    }
+    return { state: null, reply: txt.cancel, done: true, cancelled: true };
+  }
+
   /* ---------------- Widget ---------------- */
-  var CSS_ID = 'cch-assistant-css';
   function injectWidget() {
     if (document.getElementById('cch-assistant')) return;
     var l = lang();
     var wrap = document.createElement('div');
     wrap.id = 'cch-assistant';
     wrap.innerHTML =
-      '<button id="cch-fab" aria-label="' + (l === 'en' ? 'Chat assistant' : 'Asistente de chat') + '">💬</button>' +
+      '<div id="cch-teaser" hidden>' + (l === 'en' ? 'Looking for a truck or SUV? 👋' : '¿Buscas troca o SUV? 👋') + '</div>' +
+      '<button id="cch-fab" aria-label="' + (l === 'en' ? 'Chat assistant' : 'Asistente de chat') + '">' + bridgeSVG(34) + '</button>' +
       '<div id="cch-panel" hidden>' +
-        '<div id="cch-head"><span>' + (l === 'en' ? 'City Cars assistant' : 'Asistente City Cars') + '</span>' +
+        '<div id="cch-head">' + bridgeSVG(26) + '<span>' + (l === 'en' ? 'City Cars assistant' : 'Asistente City Cars') + '</span>' +
         '<button id="cch-close" aria-label="×">×</button></div>' +
         '<div id="cch-msgs"></div>' +
         '<div id="cch-chips">' +
-          '<button data-q="' + (l === 'en' ? 'Show me the cars' : 'Ver carros') + '">' + (l === 'en' ? '🚗 Cars' : '🚗 Carros') + '</button>' +
-          '<button data-q="4x4">4x4</button>' +
-          '<button data-q="' + (l === 'en' ? 'WhatsApp' : 'WhatsApp') + '">📲 WhatsApp</button>' +
+          '<button data-chip="cars">' + (l === 'en' ? '🚗 Cars' : '🚗 Carros') + '</button>' +
+          '<button data-chip="4x4">4x4</button>' +
+          '<button data-chip="lead">' + (l === 'en' ? '📝 Leave my info' : '📝 Dejar mis datos') + '</button>' +
+          '<button data-chip="wa">📲 WhatsApp</button>' +
         '</div>' +
         '<div id="cch-inputrow"><input id="cch-input" type="text" placeholder="' +
           (l === 'en' ? 'Ask about a truck or SUV…' : 'Pregunta por una troca o SUV…') +
@@ -212,9 +322,12 @@
 
     var fab = document.getElementById('cch-fab');
     var panel = document.getElementById('cch-panel');
+    var teaser = document.getElementById('cch-teaser');
     var msgs = document.getElementById('cch-msgs');
     var input = document.getElementById('cch-input');
     var opened = false;
+    var leadState = null;
+    var lastVehicle = null;
 
     function addMsg(html, who) {
       var d = document.createElement('div');
@@ -230,36 +343,70 @@
       msgs.appendChild(typing);
       msgs.scrollTop = msgs.scrollHeight;
       setTimeout(function () {
-        typing.remove();
+        if (typing.parentNode) typing.parentNode.removeChild(typing);
         addMsg(html, 'bot');
       }, 600 + Math.random() * 700);
+    }
+    function startLead(vehicleHint) {
+      var r = leadStart(l, vehicleHint);
+      leadState = r.state;
+      botSay(r.reply);
     }
     function send(text) {
       var q = (text || '').trim();
       if (!q) return;
-      addMsg(q.replace(/</g, '&lt;'), 'user');
+      addMsg(esc(q), 'user');
       input.value = '';
+      if (leadState) {
+        var r = leadStep(leadState, q, l);
+        leadState = r.state;
+        botSay(r.reply);
+        return;
+      }
+      var intent = classify(q);
+      if (intent === 'interest' || intent === 'lead') { startLead(lastVehicle); return; }
+      if (intent === 'vehicle') {
+        var v = findVehicle(q, vehicles());
+        if (v) lastVehicle = vName(v);
+      }
       botSay(buildReply(q));
     }
-
-    fab.addEventListener('click', function () {
-      panel.hidden = !panel.hidden;
-      fab.textContent = panel.hidden ? '💬' : '✕';
-      if (!panel.hidden && !opened) {
+    function toggle(open) {
+      panel.hidden = !open;
+      fab.classList.toggle('cch-open', open);
+      if (teaser) teaser.hidden = true;
+      if (open && !opened) {
         opened = true;
         botSay(pick(T[l].greeting));
       }
-      if (!panel.hidden) setTimeout(function () { input.focus(); }, 50);
-    });
-    document.getElementById('cch-close').addEventListener('click', function () {
-      panel.hidden = true; fab.textContent = '💬';
-    });
+      if (open) setTimeout(function () { input.focus(); }, 60);
+    }
+
+    fab.addEventListener('click', function () { toggle(panel.hidden); });
+    document.getElementById('cch-close').addEventListener('click', function () { toggle(false); });
+    if (teaser) teaser.addEventListener('click', function () { toggle(true); });
     document.getElementById('cch-send').addEventListener('click', function () { send(input.value); });
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') send(input.value); });
     var chips = document.querySelectorAll('#cch-chips button');
     for (var i = 0; i < chips.length; i++) {
-      chips[i].addEventListener('click', function () { send(this.getAttribute('data-q')); });
+      (function (btn) {
+        btn.addEventListener('click', function () {
+          var kind = btn.getAttribute('data-chip');
+          if (kind === 'lead') { if (panel.hidden) toggle(true); startLead(lastVehicle); }
+          else if (kind === 'wa') { window.open(WA_LINK, '_blank'); }
+          else if (kind === '4x4') { if (panel.hidden) toggle(true); send('4x4'); }
+          else { if (panel.hidden) toggle(true); send(l === 'en' ? 'Show me the cars' : 'Ver carros'); }
+        });
+      })(chips[i]);
     }
+
+    /* Teaser: aparece para invitar, se esconde al abrir o a los 14s */
+    setTimeout(function () {
+      if (!opened && teaser) {
+        teaser.hidden = false;
+        setTimeout(function () { if (teaser) teaser.hidden = true; }, 14000);
+      }
+    }, 3000);
   }
 
   function init() {
@@ -275,6 +422,9 @@
     init();
   }
 
-  // Hooks para pruebas
-  window.CCHAssistant = { classify: classify, findVehicle: findVehicle, buildReply: buildReply, lang: lang };
+  window.CCHAssistant = {
+    classify: classify, findVehicle: findVehicle, buildReply: buildReply,
+    leadStart: leadStart, leadStep: leadStep, fichaText: fichaText, fichaLink: fichaLink,
+    bridgeSVG: bridgeSVG, WA_NUMBER: WA_NUMBER,
+  };
 })();

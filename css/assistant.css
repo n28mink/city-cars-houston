@@ -1,42 +1,104 @@
-/* City Cars Houston TX — estilos del asistente */
-#cch-assistant { position: fixed; right: 18px; bottom: 18px; z-index: 9999; font-family: system-ui, sans-serif; }
+/* City Cars Houston TX — estilos del asistente.
+ * Identidad del puente: verde #0F5A3C, dorado #F5B700, arco blanco.
+ * Animaciones: pulso de atención en el botón, teaser deslizante,
+ * apertura del panel con subida + fundido, mensajes con entrada suave,
+ * arco del puente que se dibuja al abrir.
+ */
+#cch-assistant { position: fixed; right: 18px; bottom: 18px; z-index: 9999; font-family: system-ui, -apple-system, sans-serif; }
+
+/* ---------- Botón flotante: el puente ---------- */
 #cch-fab {
-  width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer;
-  font-size: 24px; background: #1877f2; color: #fff;
-  box-shadow: 0 4px 14px rgba(0,0,0,.25);
+  width: 60px; height: 60px; border-radius: 50%; border: 2px solid #F5B700; cursor: pointer;
+  background: linear-gradient(145deg, #12755c 0%, #0F5A3C 60%, #0B4530 100%);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(15, 90, 60, .45);
+  transition: transform .18s ease, box-shadow .18s ease;
+  animation: cch-attention 2.6s ease 1.2s 3;
 }
-#cch-fab:hover { transform: scale(1.06); }
+#cch-fab:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 8px 22px rgba(15, 90, 60, .55); }
+#cch-fab.cch-open { animation: none; transform: rotate(0deg); }
+#cch-fab .cch-arc { stroke-dasharray: 90; stroke-dashoffset: 90; animation: cch-draw 1.4s ease .6s forwards; }
+@keyframes cch-attention {
+  0%, 100% { box-shadow: 0 4px 16px rgba(15,90,60,.45); }
+  50% { box-shadow: 0 4px 16px rgba(15,90,60,.45), 0 0 0 14px rgba(245,183,0,.18); }
+}
+@keyframes cch-draw { to { stroke-dashoffset: 0; } }
+
+/* ---------- Teaser ---------- */
+#cch-teaser {
+  position: absolute; right: 70px; bottom: 12px; white-space: nowrap;
+  background: #fff; color: #0F5A3C; font-size: 14px; font-weight: 600;
+  padding: 10px 14px; border-radius: 14px 14px 4px 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.18); border: 1px solid #F5B700; cursor: pointer;
+  animation: cch-teaser-in .35s cubic-bezier(.2,.9,.3,1.2) both;
+}
+@keyframes cch-teaser-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Panel ---------- */
 #cch-panel {
-  position: absolute; right: 0; bottom: 68px; width: 330px; max-width: calc(100vw - 36px);
-  height: 440px; max-height: calc(100vh - 120px);
-  background: #fff; border-radius: 14px; overflow: hidden;
-  box-shadow: 0 8px 30px rgba(0,0,0,.25);
+  position: absolute; right: 0; bottom: 72px; width: 330px; max-width: calc(100vw - 36px);
+  height: 460px; max-height: calc(100vh - 120px);
+  background: #fff; border-radius: 16px; overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,.25); border-top: 4px solid #F5B700;
   display: flex; flex-direction: column;
+  animation: cch-panel-in .28s ease both;
 }
 #cch-panel[hidden] { display: none; }
+@keyframes cch-panel-in { from { opacity: 0; transform: translateY(24px) scale(.97); } to { opacity: 1; transform: none; } }
 #cch-head {
-  background: #1877f2; color: #fff; font-weight: 600; font-size: 14px;
-  padding: 10px 12px; display: flex; justify-content: space-between; align-items: center;
+  background: linear-gradient(135deg, #0F5A3C, #0B4530); color: #fff;
+  padding: 12px 14px; display: flex; align-items: center; gap: 10px; font-weight: 700;
 }
-#cch-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; line-height: 1; }
-#cch-msgs { flex: 1; overflow-y: auto; padding: 10px; background: #f0f2f5; display: flex; flex-direction: column; gap: 8px; }
-.cch-msg { max-width: 85%; padding: 8px 11px; border-radius: 14px; font-size: 13.5px; line-height: 1.4; word-wrap: break-word; }
-.cch-msg.bot { background: #fff; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
-.cch-msg.user { background: #1877f2; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
-.cch-msg a { color: #1877f2; }
-.cch-msg.user a { color: #fff; }
-.cch-typing span { display: inline-block; width: 6px; height: 6px; margin: 0 2px; border-radius: 50%; background: #bcc0c4; animation: cch-blink 1s infinite; }
-.cch-typing span:nth-child(2) { animation-delay: .2s; }
-.cch-typing span:nth-child(3) { animation-delay: .4s; }
-@keyframes cch-blink { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
-#cch-chips { display: flex; gap: 6px; padding: 8px 10px; background: #fff; border-top: 1px solid #e4e6eb; overflow-x: auto; }
+#cch-head span { flex: 1; }
+#cch-head .cch-arc { stroke-dasharray: 90; stroke-dashoffset: 90; animation: cch-draw 1s ease .15s forwards; }
+#cch-close { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; line-height: 1; opacity: .8; }
+#cch-close:hover { opacity: 1; }
+
+#cch-msgs { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: #f4f7f5; }
+.cch-msg {
+  max-width: 85%; padding: 9px 12px; border-radius: 14px; font-size: 14px; line-height: 1.45;
+  animation: cch-msg-in .22s ease both; word-wrap: break-word;
+}
+@keyframes cch-msg-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.cch-msg.bot { background: #fff; color: #1d2427; border: 1px solid #e2e8e6; align-self: flex-start; border-bottom-left-radius: 4px; }
+.cch-msg.user { background: #0F5A3C; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.cch-msg a { color: #0F5A3C; font-weight: 600; }
+.cch-msg.user a { color: #F5B700; }
+.cch-small { font-size: 12px; color: #6b7673; }
+.cch-typing { display: flex; gap: 5px; padding: 12px 14px; }
+.cch-typing span { width: 7px; height: 7px; border-radius: 50%; background: #0F5A3C; opacity: .35; animation: cch-blink 1s infinite; }
+.cch-typing span:nth-child(2) { animation-delay: .15s; }
+.cch-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes cch-blink { 0%, 100% { opacity: .25; transform: none; } 50% { opacity: 1; transform: translateY(-3px); } }
+
+/* Botón verde WhatsApp dentro del chat */
+a.cch-wa-btn {
+  display: inline-block; background: #0F5A3C; color: #fff !important; font-weight: 700;
+  padding: 12px 18px; border-radius: 12px; text-decoration: none; border: 2px solid #F5B700;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+a.cch-wa-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(15,90,60,.4); }
+
+/* ---------- Chips ---------- */
+#cch-chips { display: flex; gap: 6px; padding: 8px 10px; background: #fff; border-top: 1px solid #eef1ef; overflow-x: auto; }
 #cch-chips button {
-  white-space: nowrap; font-size: 12.5px; padding: 6px 10px; border-radius: 16px;
-  border: 1px solid #1877f2; background: #fff; color: #1877f2; cursor: pointer;
+  flex: none; border: 1.5px solid #0F5A3C; background: #fff; color: #0F5A3C; font-size: 12.5px; font-weight: 600;
+  border-radius: 20px; padding: 6px 12px; cursor: pointer; transition: all .15s ease;
 }
-#cch-inputrow { display: flex; gap: 6px; padding: 8px 10px; background: #fff; border-top: 1px solid #e4e6eb; }
-#cch-input { flex: 1; border: 1px solid #ccd0d5; border-radius: 18px; padding: 8px 12px; font-size: 13.5px; outline: none; }
-#cch-send { width: 36px; height: 36px; border-radius: 50%; border: none; background: #1877f2; color: #fff; cursor: pointer; font-size: 15px; }
-@media (max-width: 420px) {
-  #cch-panel { width: calc(100vw - 36px); }
+#cch-chips button:hover { background: #0F5A3C; color: #fff; transform: translateY(-1px); }
+#cch-chips button:active { transform: scale(.96); }
+
+/* ---------- Input ---------- */
+#cch-inputrow { display: flex; gap: 8px; padding: 10px; background: #fff; border-top: 1px solid #eef1ef; }
+#cch-input { flex: 1; border: 1.5px solid #d8e0dd; border-radius: 20px; padding: 9px 14px; font-size: 14px; outline: none; transition: border-color .15s; }
+#cch-input:focus { border-color: #0F5A3C; }
+#cch-send {
+  width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
+  background: #0F5A3C; color: #fff; font-size: 16px; transition: transform .15s ease, background .15s;
+}
+#cch-send:hover { background: #0B4530; transform: scale(1.08); }
+#cch-send:active { transform: scale(.94); }
+
+@media (prefers-reduced-motion: reduce) {
+  #cch-fab, #cch-teaser, #cch-panel, .cch-msg { animation: none !important; }
 }
