@@ -159,11 +159,11 @@
       <form class="calc" id="calcform" novalidate>
         <div class="field">
           <label for="c-precio">Precio del vehículo (USD)</label>
-          <input type="text" inputmode="decimal" id="c-precio" placeholder="Ej. 25000" autocomplete="off">
+          <input type="text" inputmode="decimal" id="c-precio" autocomplete="off">
         </div>
         <div class="field">
           <label for="c-inicial">Inicial (USD)</label>
-          <input type="text" inputmode="decimal" id="c-inicial" placeholder="Ej. 3000" autocomplete="off">
+          <input type="text" inputmode="decimal" id="c-inicial" autocomplete="off">
         </div>
         <div class="field">
           <label for="c-apr">APR anual (%)</label>
@@ -227,7 +227,7 @@
       </div>
 
       <div class="planner">
-        <ol class="progress" id="progress" aria-hidden="true"><li>Tu carro</li><li>Tu inicial</li><li>Documentos</li><li>Tus datos</li></ol>
+        <ol class="progress" id="progress" aria-hidden="true"><li>Tu carro</li><li>Documentos</li><li>Tus datos</li></ol>
         <form id="planform" novalidate>
           <fieldset class="step active" data-step="0">
             <legend>¿Qué buscas?</legend>
@@ -241,27 +241,12 @@
           </fieldset>
 
           <fieldset class="step" data-step="1">
-            <legend>Tu inicial y tu ingreso</legend>
-            <p class="hint">Solo rangos, para saber con qué dealers conviene hablar. Los números exactos los ves con el dealer.</p>
-            <p class="qlabel" id="q-inicial">¿Cuánto tienes para la inicial?</p>
-            <div class="options" role="radiogroup" aria-labelledby="q-inicial" id="opt-inicial"></div>
-            <div class="field">
-              <label for="f-ingreso">Ingreso mensual aproximado</label>
-              <select id="f-ingreso" name="ingreso"></select>
-            </div>
-            <div class="field">
-              <label for="f-empleo">Tiempo en tu trabajo actual</label>
-              <select id="f-empleo" name="empleo"></select>
-            </div>
-          </fieldset>
-
-          <fieldset class="step" data-step="2">
             <legend>¿Qué documentos tienes?</legend>
             <p class="hint">Esta pregunta es opcional: puedes dejarla en blanco. Solo marca el tipo de documento, nunca escribas números.</p>
             <div class="options" id="opt-docs"></div>
           </fieldset>
 
-          <fieldset class="step" data-step="3">
+          <fieldset class="step" data-step="2">
             <legend>¿Cómo te llamas?</legend>
             <p class="hint">No te pedimos teléfono: te contestamos al mismo WhatsApp desde el que escribes.</p>
             <div class="field">

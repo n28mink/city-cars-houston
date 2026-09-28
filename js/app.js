@@ -343,8 +343,6 @@
     sel.appendChild(el("option", { value: "" }, T.choose));
     list.forEach(function (t, i) { sel.appendChild(el("option", { value: String(i) }, t)); });
   }
-  fillSelect($("f-ingreso"), T.income);
-  fillSelect($("f-empleo"), T.tenure);
 
   function addOption(container, type, name, value, text) {
     var wrap = el("label", { "class": "opt" });
@@ -354,7 +352,6 @@
     return input;
   }
   T.cases.forEach(function (c) { addOption($("opt-perfil"), "radio", "perfil", c.id, c.label); });
-  T.down.forEach(function (d, i) { addOption($("opt-inicial"), "radio", "inicial", String(i), d); });
   T.docs.forEach(function (d) { addOption($("opt-docs"), "checkbox", "docs", d[0], d[1]); });
 
   function setPerfil(id) { form.querySelectorAll('input[name="perfil"]').forEach(function (r) { r.checked = r.value === id; }); }
@@ -383,12 +380,7 @@
   var NAME_RE = /^[A-Za-zÀ-ÖØ-öø-ÿÑñ' .-]{2,80}$/;
 
   function validate(n) {
-    if (n === 1) {
-      if (!checked("inicial")) return { msg: T.errDown, focus: form.querySelector('input[name="inicial"]') };
-      if ($("f-ingreso").value === "") return { msg: T.errIncome, focus: $("f-ingreso") };
-      if ($("f-empleo").value === "") return { msg: T.errTenure, focus: $("f-empleo") };
-    }
-    if (n === 3) {
+    if (n === 2) {
       if (!NAME_RE.test(clean($("f-nombre").value, 80))) return { msg: T.errName, focus: $("f-nombre") };
       if (!NAME_RE.test(clean($("f-ciudad").value, 60))) return { msg: T.errCity, focus: $("f-ciudad") };
       if (!$("f-consent").checked) return { msg: T.errConsent, focus: $("f-consent") };
@@ -423,9 +415,6 @@
     var values = [
       v ? label(v) : T.undecided,
       perfil ? perfil.label : T.noCase,
-      pick(T.down, checked("inicial")),
-      pick(T.income, $("f-ingreso").value),
-      pick(T.tenure, $("f-empleo").value),
       docs.length ? docs.join(", ") : T.noDocs,
       share ? T.yes : T.no
     ];

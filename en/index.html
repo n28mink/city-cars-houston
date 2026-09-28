@@ -227,7 +227,7 @@
       </div>
 
       <div class="planner">
-        <ol class="progress" id="progress" aria-hidden="true"><li>Vehicle</li><li>Down &amp; income</li><li>Documents</li><li>About you</li></ol>
+        <ol class="progress" id="progress" aria-hidden="true"><li>Vehicle</li><li>Documents</li><li>About you</li></ol>
         <form id="planform" novalidate>
           <fieldset class="step active" data-step="0">
             <legend>What are you looking for?</legend>
@@ -241,27 +241,12 @@
           </fieldset>
 
           <fieldset class="step" data-step="1">
-            <legend>Down payment and income</legend>
-            <p class="hint">Ranges only, so we know which dealers make sense for you. You'll get exact numbers from the dealer.</p>
-            <p class="qlabel" id="q-inicial">How much do you have for a down payment?</p>
-            <div class="options" role="radiogroup" aria-labelledby="q-inicial" id="opt-inicial"></div>
-            <div class="field">
-              <label for="f-ingreso">Approximate monthly income</label>
-              <select id="f-ingreso" name="ingreso"></select>
-            </div>
-            <div class="field">
-              <label for="f-empleo">Time at your current job</label>
-              <select id="f-empleo" name="empleo"></select>
-            </div>
-          </fieldset>
-
-          <fieldset class="step" data-step="2">
             <legend>Which documents do you have?</legend>
             <p class="hint">This question is optional, so feel free to skip it. Only check the type of document. Never type any numbers.</p>
             <div class="options" id="opt-docs"></div>
           </fieldset>
 
-          <fieldset class="step" data-step="3">
+          <fieldset class="step" data-step="2">
             <legend>What's your name?</legend>
             <p class="hint">We don't ask for your phone number: we reply to the same WhatsApp you message us from.</p>
             <div class="field">
