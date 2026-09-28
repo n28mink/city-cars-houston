@@ -112,7 +112,7 @@
   }
   T.cases.forEach(function (c) {
     var b = el("button", { type: "button", "class": "chip", role: "radio", "aria-checked": "false", "data-id": c.id }, c.label);
-    b.addEventListener("click", function () { showCase(c); });
+    b.addEventListener("click", function () { showCase(c); setPerfil(c.id); });
     caseChips.appendChild(b);
   });
   showCase(T.cases[0]);
@@ -352,6 +352,14 @@
   T.docs.forEach(function (d) { addOption($("opt-docs"), "checkbox", "docs", d[0], d[1]); });
 
   function setPerfil(id) { form.querySelectorAll('input[name="perfil"]').forEach(function (r) { r.checked = r.value === id; }); }
+  // Sincronizar los radios del plan con los chips de "¿Cuál es tu caso?" (y viceversa)
+  form.querySelectorAll('input[name="perfil"]').forEach(function (r) {
+    r.addEventListener("change", function () {
+      var c = null;
+      T.cases.forEach(function (x) { if (x.id === r.value) c = x; });
+      if (c) showCase(c);
+    });
+  });
   function selectVehicle(slug) { var v = resolveVehicle(slug); selV.value = v ? v.slug : ""; }
   function goPlan() { $("result").hidden = true; form.hidden = false; showStep(0); $("plan").scrollIntoView(); }
 
