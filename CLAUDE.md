@@ -50,3 +50,9 @@ que no se pudo resolver; no se sigue tocando.
 - No usar logos de marcas como elementos de marca.
 - Cualquier texto legal lleva marca `[REVISAR CON ABOGADO]` hasta que el dueño lo confirme.
 - Enlaces WhatsApp con `new URL()` + `searchParams`, `rel="noopener noreferrer"`.
+
+## Herramienta aparte: extensión «Asesor Marketplace» (`tools/asesor-marketplace/`)
+Extensión de Chrome (MV3) para el canal de Facebook Marketplace: avisa al teléfono cuando llega un
+mensaje y prepara un BORRADOR de respuesta con Groq; nunca envía nada sola. No es parte del sitio
+(`.vercelignore` excluye `tools/`). Pruebas: `node --test tools/asesor-marketplace/test/background.test.js`.
+Paquete listo para instalar: `tools/asesor-marketplace-v1.0.2.zip` (guía en `GUIA.txt`).

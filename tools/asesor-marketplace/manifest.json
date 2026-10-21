@@ -1,0 +1,44 @@
+{
+  "action": {
+    "default_icon": "icon128.png",
+    "default_popup": "popup.html",
+    "default_title": "Asesor Marketplace"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "content.js"
+      ],
+      "matches": [
+        "https://www.messenger.com/*",
+        "https://www.facebook.com/*"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "description": "Te avisa cuando te escriben en Marketplace y el Asesor te prepara el borrador de respuesta de tu embudo de ventas. Modo seguro: nunca envía mensajes por su cuenta; tú lo pegas y lo envías.",
+  "host_permissions": [
+    "https://www.messenger.com/*",
+    "https://www.facebook.com/*",
+    "https://api.callmebot.com/*",
+    "https://api.telegram.org/*",
+    "https://api.groq.com/*"
+  ],
+  "icons": {
+    "128": "icon128.png"
+  },
+  "manifest_version": 3,
+  "name": "Asesor Marketplace",
+  "options_page": "options.html",
+  "permissions": [
+    "storage",
+    "notifications",
+    "alarms",
+    "scripting",
+    "tabs"
+  ],
+  "version": "1.0.2"
+}

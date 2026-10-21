@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Configuración — Asesor Marketplace</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 520px; margin: 30px auto; padding: 0 16px; color: #1c1e21; }
+  h1 { font-size: 20px; }
+  label { display: block; margin-top: 14px; font-weight: bold; }
+  input[type=text], input[type=password] { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
+  .hint { font-size: 12px; color: #65676b; margin-top: 4px; }
+  .row { margin-top: 14px; }
+  button { padding: 10px 18px; font-size: 15px; cursor: pointer; margin-right: 8px; }
+  #status { margin-top: 16px; font-weight: bold; }
+  ol li { margin-bottom: 8px; }
+  code { background: #f0f2f5; padding: 2px 6px; }
+</style>
+</head>
+<body>
+<h1>🤖 Asesor Marketplace — Configuración</h1>
+<p class="hint"><b>Modo seguro:</b> el Asesor prepara borradores y NUNCA envía mensajes por su cuenta. Tú pegas el borrador en el chat y lo envías tú.</p>
+
+<h2>1. Activa el envío de WhatsApp (una sola vez)</h2>
+<ol>
+  <li>En tu teléfono, agrega a tus contactos el número del bot que aparece en <b>callmebot.com/blog/free-api-whatsapp-messages</b> (ponle de nombre "CallMeBot"; el número cambia con el tiempo y a veces dice "bot lleno": si pasa, usa Telegram, abajo).</li>
+  <li>Por WhatsApp envíale exactamente este mensaje:<br><code>I allow callmebot to send me messages</code></li>
+  <li>Te responde con tu <b>APIKEY</b> (un número). Guárdala y pégala abajo.</li>
+</ol>
+<p class="hint">Es gratis y solo sirve para mandarte mensajes a ti mismo. Fuente: callmebot.com</p>
+
+<h2>2. Elige cómo te aviso</h2>
+<div class="row">
+  <label style="font-weight:normal"><input type="radio" name="channel" value="whatsapp" checked> WhatsApp (con CallMeBot)</label><br>
+  <label style="font-weight:normal"><input type="radio" name="channel" value="telegram"> Telegram (con tu propio bot)</label>
+</div>
+
+<div id="secWhatsapp">
+<h3>WhatsApp</h3>
+<label>Tu número de WhatsApp (con código de país, sin +, sin espacios)
+  <input type="text" id="phone" placeholder="Ej. EE.UU.: 12815551234">
+  <div class="hint">Tiene que ser el mismo número desde donde le escribiste al bot.</div>
+</label>
+
+<label>Tu APIKEY de CallMeBot
+  <input type="text" id="apikey" placeholder="Ej. 123456">
+</label>
+</div>
+
+<div id="secTelegram" style="display:none">
+<h3>Telegram — se hace una sola vez</h3>
+<ol>
+  <li>Instala <b>Telegram</b> en tu teléfono y crea tu cuenta.</li>
+  <li>Busca <b>@BotFather</b>, escríbele <code>/newbot</code>, ponle un nombre (ej. "Avisos Marketplace") y un usuario (ej. avisos_marketplace_bot). Te responde con el <b>token</b>: guárdalo.</li>
+  <li>Busca tu bot por su usuario y escríbele "hola" (o pulsa Start).</li>
+  <li>Busca <b>@userinfobot</b>, escríbele cualquier cosa y te responde con tu <b>ID</b> (un número).</li>
+</ol>
+<label>Token de tu bot
+  <input type="text" id="tg_token" placeholder="Ej. 123456:ABC-defGHI...">
+</label>
+
+<label>Tu ID de Telegram
+  <input type="text" id="tg_chatid" placeholder="Ej. 987654321">
+</label>
+<p class="hint">Las escalaciones del Asesor ("esto te toca a ti") llegan por Telegram si está configurado; si no, por el canal que elegiste arriba.</p>
+</div>
+
+<div class="row">
+  <label style="font-weight:normal"><input type="checkbox" id="enabled" checked> Avisos activados</label>
+</div>
+<div class="row">
+  <label style="font-weight:normal"><input type="checkbox" id="marketplaceOnly" checked> Avisar solo de mensajes de Marketplace (si lo apagas, avisa de todos tus chats)</label>
+</div>
+
+<h2>3. El Asesor (borradores con IA) — modo seguro</h2>
+<div class="row">
+  <label style="font-weight:normal"><input type="checkbox" id="asesor_enabled"> Asesor activado</label>
+  <div class="hint">Cuando un cliente te escribe, el Asesor lee el mensaje y la ficha del cliente y te prepara el borrador del siguiente paso de tu embudo (uso → enganche → crédito/empleo → nombre y teléfono → cita). El borrador aparece en un panel dentro del chat: tú lo pegas y lo envías. <b>El Asesor nunca envía nada solo.</b> Si el caso se sale del guión, no hay borrador: el panel te dice "Esto te toca a ti" y te llega el aviso por Telegram.</div>
+</div>
+<label>Tu clave de Groq (API key)
+  <input type="password" id="groq_key" placeholder="Pégala desde console.groq.com/keys" autocomplete="off">
+  <div class="hint">Se guarda solo en tu PC. Consíguela gratis en <b>console.groq.com/keys</b> → Create API Key. Sin esta clave el Asesor no funciona.</div>
+</label>
+<label>Dirección del dealer (opcional)
+  <input type="text" id="dealer_address" placeholder="Ej. 1234 N Shepherd Dr, Houston, TX">
+  <div class="hint">Déjalo vacío si no quieres darla todavía. Si lo llenas, el borrador de CONFIRMACIÓN de cita puede incluir la dirección. Si está vacío, el borrador dice que la dirección se le envía al cliente a su teléfono cuando la cita quede confirmada. La extensión nunca la comparte antes de una cita confirmada.</div>
+</label>
+<div class="row"><button id="testAI">Probar conexión con la IA</button></div>
+
+<div class="row">
+  <button id="save">Guardar</button>
+  <button id="test">Probar aviso</button>
+  <button id="diag">Diagnosticar detección</button>
+</div>
+<div id="status"></div>
+<div id="diagResult" class="hint" style="margin-top:8px"></div>
+
+<h2>Actividad reciente</h2>
+<div id="activityLog" class="hint" style="white-space:pre-line; background:#f0f2f5; border-radius:8px; padding:10px; min-height:40px; font-size:12px;">(vacío)</div>
+<div class="row"><button id="refreshLog">Actualizar</button></div>
+
+<script src="options.js"></script>
+</body>
+</html>
