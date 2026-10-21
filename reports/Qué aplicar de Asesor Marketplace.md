@@ -52,3 +52,15 @@ Cada una se puede saltar escribiendo "omitir" / "skip". La ficha lista para What
 ## 6. Sobre la habilidad `sales:competitive-intelligence`
 
 La habilidad compara contra competidores usando datos de un CRM, transcripciones o correos. Aquí no hubo nada de eso: no se dio lista de competidores, historial de ventas ganadas/perdidas ni reseñas. No se inventó ninguno. La extensión se trató como un material completo de entrada y se extrajo su método. Si quieres una ficha de competidores reales (otros intermediarios de autos en Houston, vendedores de Marketplace), hay que darme los nombres o enlaces para poder buscar.
+
+## 7. Actualización: versión adaptada al modelo puente (v1.1.0)
+
+El dueño confirmó que en Marketplace City Cars también actúa como **puente**, no como vendedor. Por eso la extensión se adaptó en `reports/asesor-marketplace-puente/` (instalable: `reports/asesor-marketplace-puente-v1.1.0.zip`). Cambios respecto a la v1.0.2:
+
+- **Embudo:** trabajo o familia → cuántas personas → nombre y teléfono → cita por elección (un día y dos horarios) → confirmación. Se quitaron enganche, crédito, empleo y presupuesto mensual, tanto del guion como de la ficha.
+- **Prompt:** City Cars se presenta como puente, no como dealer ni prestamista. Ante precio o inicial responde que cada dealer maneja los suyos y los da por escrito antes de firmar. Sobre crédito solo usa la frase aprobada de ITIN. Nunca pide ITIN, SSN, identificación ni datos bancarios.
+- **Título, historial, condición y disponibilidad:** ya no los afirma; esos mensajes se escalan al dueño.
+- **Candado en código:** un borrador con una frase prohibida o una cifra de dinero se descarta y se escala. Lo probado: detecta "$3,000", "Aprobación garantizada" y "We finance everyone", y deja pasar la explicación de que el dealer da los números por escrito.
+- **Pruebas:** se revisó la sintaxis de los cuatro scripts y se probaron con Node las funciones puras (ficha, candado, lectura de la respuesta). **No se probó dentro de Chrome ni contra Facebook ni Groq.**
+- **Sigue igual:** modo seguro (nunca envía solo), avisos al teléfono, panel del chat, dirección solo con cita confirmada.
+- **Pendiente para el dueño:** los avisos y la IA siguen enviando nombre y mensaje del cliente a Groq y a CallMeBot/Telegram, y la lectura de pantalla de Facebook no se ha revisado contra los términos de Meta. [REVISAR CON ABOGADO]

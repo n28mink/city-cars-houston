@@ -1,0 +1,157 @@
+ASESOR MARKETPLACE (PUENTE) v1.1.0 — GUÍA FÁCIL
+=======================================
+
+¿Qué hace esta extensión?
+-------------------------
+1. Te avisa a tu teléfono (WhatsApp o Telegram) cuando un cliente te
+   escribe en Marketplace, igual que el Notificador de antes.
+2. NUEVO: el Asesor (una IA) lee el mensaje del cliente y la ficha de
+   ese cliente, y te prepara el BORRADOR de la respuesta siguiendo tu
+   embudo de ventas de City Cars (puente): ¿trabajo o familia? → cuántas
+   personas → nombre y teléfono → cita por elección (un día y dos horarios).
+3. El borrador aparece en un panel dentro del chat. Tú lo revisas, lo
+   pegas con un botón y lo envías TÚ con el botón normal de Messenger.
+
+*** LO MÁS IMPORTANTE: LA EXTENSIÓN NUNCA ENVÍA MENSAJES SOLA. ***
+Ni automática, ni escondida, ni de noche. No tiene esa función: fue
+eliminada a propósito. Cada mensaje que reciba un cliente lo enviaste
+tú con tu dedo, como siempre.
+
+PARTE 1 — INSTALAR EN CHROME (una sola vez, 5 minutos)
+-------------------------------------------------------
+1. Abre Google Chrome en tu PC.
+2. Escribe arriba, en la barra de direcciones: chrome://extensions
+   y pulsa Enter.
+3. Arriba a la derecha, activa el interruptor que dice
+   "Modo de desarrollador".
+4. Arriba a la izquierda aparece un botón "Cargar descomprimida".
+   Púlsalo.
+5. Busca y elige la carpeta "asesor-marketplace" (la carpeta que tiene
+   adentro manifest.json, background.js, content.js...).
+6. Listo: aparece "Asesor Marketplace" en tu lista de extensiones.
+   Si quieres ver su icono siempre, pulsa el icono de la pieza de
+   rompecabezas de Chrome y el pin 📌 junto a "Asesor Marketplace".
+
+PARTE 2 — CONFIGURAR (una sola vez)
+-----------------------------------
+1. Pulsa el icono de la extensión y luego "Configuración".
+   (También: en chrome://extensions → Asesor Marketplace → Detalles
+   → Opciones de la extensión.)
+2. AVISOS AL TELÉFONO: elige WhatsApp o Telegram y pega tus datos,
+   igual que en el Notificador:
+   - WhatsApp: tu número (con código de país, ej. 12815551234) y tu
+     APIKEY de CallMeBot. OJO: CallMeBot a veces tiene el bot lleno y
+     no da APIKEY nueva; si te pasa, usa Telegram (es más estable).
+   - Telegram: el token de tu bot (@BotFather) y tu ID (@userinfobot).
+   Pulsa "Guardar" y luego "Probar aviso": debe llegarte al teléfono.
+3. EL ASESOR: marca la casilla "Asesor activado".
+4. CLAVE DE GROQ: entra en tu PC a console.groq.com/keys, pulsa
+   "Create API Key", cópiala y pégala en el campo "Tu clave de Groq".
+   (Es la misma clave que ya usabas: si la tienes guardada, pégala.)
+   Modelos usados: openai/gpt-oss-120b y, de respaldo, openai/gpt-oss-20b.
+   Los modelos Llama que Groq apagó el 16-ago-2026 ya no se usan.
+5. DIRECCIÓN DEL DEALER (opcional): si la escribes, el borrador de
+   cuando un cliente CONFIRMA su cita puede incluir la dirección.
+   Si la dejas vacía, el borrador dice que la dirección se le envía
+   al cliente a su teléfono. Tú eliges. Sin cita confirmada, la
+   dirección jamás sale en ningún borrador.
+6. Pulsa "Guardar".
+7. Pulsa "Probar conexión con la IA". Si dice "La IA respondió: OK",
+   ya todo quedó listo.
+
+PARTE 3 — CÓMO SE USA A DIARIO
+------------------------------
+1. Deja tu PC encendida, con Chrome abierto y tu Facebook iniciado
+   (puede estar minimizado, no importa).
+2. Cuando un cliente te escriba, te llega el aviso al teléfono, como
+   siempre.
+3. Abre ese chat en Messenger en tu PC. Abajo a la derecha del chat
+   aparece el panel azul del Asesor con el borrador ya escrito.
+4. Léelo. Si quieres cambiar alguna palabra, escríbela directo en el
+   cuadro del borrador: es editable.
+5. Pulsa el botón azul "Pegar en el chat": el texto se escribe solo
+   en el cuadro de mensaje de Messenger. NO se envía.
+6. Revísalo una última vez y pulsa TÚ el botón de enviar de Messenger
+   (la flecha), como haces siempre.
+7. Si el panel no encuentra el cuadro de mensaje, pulsa "Copiar" y
+   pega el texto tú mismo con Ctrl+V. Copiar siempre funciona.
+8. Si el borrador no te gusta, pulsa "No usar" y responde tú a mano.
+9. A veces el panel dice "🙋 Esto te toca a ti": significa que el
+   cliente se salió del guión (pidió trade-in, está molesto, quiere
+   entrega a domicilio, regatea mucho...). Ahí no hay borrador: ese
+   mensaje lo respondes tú. También te llega el motivo por Telegram.
+10. A veces el panel avisa que el Asesor no pudo preparar el borrador
+    (falló el internet o la IA). Tampoco pasa nada malo: respondes tú
+    y listo. Nunca se inventa un borrador en ese caso.
+11. Para ver cómo va cada cliente, pulsa el icono de la extensión:
+    abajo sale la lista de clientes con su etapa (Calificando, Datos
+    listos, Cita confirmada...) y sus datos: vehículo, teléfono,
+    personas y día/hora de la cita si ya la tiene.
+
+LO QUE EL ASESOR HACE SOLO (y lo que nunca hace)
+-----------------------------------------------
+SÍ hace solo:
+- Leer el mensaje nuevo y preparar el borrador del siguiente paso.
+- Acordarse de cada cliente: vehículo, trabajo o familia, personas,
+  teléfono, horario y cita.
+- Avisarte por Telegram cuando un caso te toca a ti.
+NUNCA hace:
+- Enviar un mensaje sin ti. Jamás.
+- Dar ni preguntar precios, inicial/enganche, mensualidad, APR ni plazos.
+  Si preguntan, explica que cada dealer maneja los suyos y los da por
+  escrito antes de firmar.
+- Preguntar por crédito, ingresos o empleo, ni pedir ITIN, SSN,
+  identificación o datos bancarios por chat.
+- Prometer aprobación ni decir "financiamos a todos". Solo usa:
+  "Muchos de nuestros dealers trabajan con ITIN, sin crédito o crédito
+  dañado."
+- Afirmar título, historial, condición o disponibilidad de un vehículo:
+  esos casos los escala a ti.
+- Dar la dirección antes de que la cita esté confirmada.
+Además, un candado en código descarta cualquier borrador con una frase
+prohibida o una cifra de dinero y lo escala a ti.
+
+LÍMITES HONESTOS
+----------------
+- La PC tiene que estar ENCENDIDA, con Chrome abierto y tu sesión de
+  Facebook/Messenger iniciada. Si cierras Chrome por completo, la
+  extensión no puede ver los mensajes ni preparar borradores.
+- Funciona con la cuenta de Facebook que esté abierta en ese perfil
+  de Chrome (tu cuenta principal). No la uses en tus otras cuentas.
+- Solo lee texto. Si un cliente manda una foto, un video o una nota
+  de voz, no hay borrador de eso: te llega el aviso y lo ves tú.
+- El Asesor usa la vista previa del chat (el pedacito de mensaje que
+  muestra la lista de conversaciones). Si el mensaje del cliente es
+  muy largo, trabaja con ese pedazo: revísalo en el chat completo
+  antes de enviar tu respuesta.
+- Facebook cambia su diseño de vez en cuando. Si un día el botón
+  "Pegar en el chat" no encuentra el cuadro de mensaje, usa "Copiar":
+  ese botón no depende del diseño de Facebook.
+- Tu clave de Groq se guarda solo en tu PC y solo se usa para hablar
+  con Groq. No la compartas con nadie.
+- Si algo falla, abre Configuración → "Actividad reciente": ahí queda
+  anotado qué hizo el Asesor y por qué.
+
+CAMBIOS DE LA v1.0.2 (correcciones)
+-----------------------------------
+- El Asesor ya prepara borrador cuando el cliente escribe DOS mensajes
+  seguidos (antes el segundo se ignoraba si llegaba en menos de 2 min).
+- También prepara borrador en el chat que tienes ABIERTO (Facebook lo
+  marca como leído al instante y antes eso lo dejaba pasar). Tus propios
+  mensajes ("Tú: ...") no generan borrador.
+- Sin avisos ni borradores duplicados cuando hay varias pestañas abiertas.
+- La hora de la vista previa ("· 5m") ya no se confunde con un mensaje nuevo.
+- Candado extra: si un borrador trae la dirección del dealer sin cita
+  confirmada, se descarta y el caso te toca a ti.
+- Panel del chat: la nota "pegado ✅" ya no desaparece al instante, y lo
+  que editas en el borrador no se pierde si algo falla. Los saltos de
+  línea se pegan como salto suave (nunca Enter, nunca envía).
+- Vehículo: se lee solo de la conversación abierta (antes podía tomar el
+  de otro chat de la lista) y reconoce más marcas.
+- Groq: modelos actualizados, tiempo límite de 30 s y reconoce el error de
+  modelo retirado. "Probar conexión" ya no dice OK si la IA respondió vacío.
+- CallMeBot: "Message queued" cuenta como enviado (antes marcaba fallo).
+- Configuración: "Probar aviso" ahora muestra el resultado en pantalla, y
+  guarda antes de probar. La memoria interna ya no crece sin límite.
+
+v1.1.0 (Puente) — adaptada de la v1.0.2 para City Cars Houston, octubre 2026. Modo seguro, siempre.
