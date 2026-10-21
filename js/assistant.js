@@ -313,8 +313,13 @@
       askPhone: function (n) { return 'Gracias, ' + n + '. ¿Cuál es tu número de WhatsApp?'; },
       badPhone: 'Ese número no me cuadra, ¿me lo pasas de nuevo? (solo números, con código de área)',
       askVehicle: '¿Qué carro te interesa? (dime el modelo)',
+      askUse: '¿Lo buscas más para trabajo o para familia? (o escribe "omitir")',
+      askTime: '¿En qué horario te queda mejor que te escriban: mañana, tarde o noche? (o escribe "omitir")',
       review: function (d) {
-        return 'Revisemos tu ficha:<br>• Nombre: <b>' + esc(d.name) + '</b><br>• WhatsApp: <b>' + esc(d.phone) + '</b><br>• Vehículo: <b>' + esc(d.vehicle) + '</b><br><br>¿Está bien? (sí / corregir)';
+        return 'Revisemos tu ficha:<br>• Nombre: <b>' + esc(d.name) + '</b><br>• WhatsApp: <b>' + esc(d.phone) + '</b><br>• Vehículo: <b>' + esc(d.vehicle) + '</b>' +
+          (d.use ? '<br>• Uso: <b>' + esc(d.use) + '</b>' : '') +
+          (d.time ? '<br>• Mejor horario: <b>' + esc(d.time) + '</b>' : '') +
+          '<br><br>¿Está bien? (sí / corregir)';
       },
       restart: 'Va de nuevo. ¿Cuál es tu nombre?',
       cancel: 'Sin problema, aquí estoy si me necesitas 👍',
@@ -327,8 +332,13 @@
       askPhone: function (n) { return 'Thanks, ' + n + '. What\'s your WhatsApp number?'; },
       badPhone: 'That number doesn\'t look right, can you send it again? (digits only, with area code)',
       askVehicle: 'Which car are you interested in? (tell me the model)',
+      askUse: 'Is it more for work or for family? (or type "skip")',
+      askTime: 'What time works best for us to message you: morning, afternoon or evening? (or type "skip")',
       review: function (d) {
-        return 'Let\'s review your info:<br>• Name: <b>' + esc(d.name) + '</b><br>• WhatsApp: <b>' + esc(d.phone) + '</b><br>• Vehicle: <b>' + esc(d.vehicle) + '</b><br><br>Is that right? (yes / correct)';
+        return 'Let\'s review your info:<br>• Name: <b>' + esc(d.name) + '</b><br>• WhatsApp: <b>' + esc(d.phone) + '</b><br>• Vehicle: <b>' + esc(d.vehicle) + '</b>' +
+          (d.use ? '<br>• Use: <b>' + esc(d.use) + '</b>' : '') +
+          (d.time ? '<br>• Best time: <b>' + esc(d.time) + '</b>' : '') +
+          '<br><br>Is that right? (yes / correct)';
       },
       restart: 'Let\'s start over. What\'s your name?',
       cancel: 'No problem, I\'m here if you need me 👍',
@@ -346,10 +356,34 @@
   }
 
   function fichaText(d, l) {
-    var lines = l === 'en'
-      ? ['New lead - City Cars Houston', 'Name: ' + d.name, 'Phone: ' + d.phone, 'Vehicle of interest: ' + d.vehicle, 'Date: ' + todayStr(l)]
-      : ['Nueva ficha - City Cars Houston', 'Nombre: ' + d.name, 'Teléfono: ' + d.phone, 'Vehículo de interés: ' + d.vehicle, 'Fecha: ' + todayStr(l)];
+    var en = l === 'en';
+    var lines = en
+      ? ['New lead - City Cars Houston', 'Name: ' + d.name, 'Phone: ' + d.phone, 'Vehicle of interest: ' + d.vehicle]
+      : ['Nueva ficha - City Cars Houston', 'Nombre: ' + d.name, 'Teléfono: ' + d.phone, 'Vehículo de interés: ' + d.vehicle];
+    if (d.use) lines.push((en ? 'Use: ' : 'Uso: ') + d.use);
+    if (d.time) lines.push((en ? 'Best time to reply: ' : 'Mejor horario para responder: ') + d.time);
+    lines.push((en ? 'Date: ' : 'Fecha: ') + todayStr(l));
     return lines.join('\n');
+  }
+
+  /* Respuestas cortas de las dos preguntas opcionales de la ficha.
+   * "omitir" deja el campo vacío; texto libre se conserva (máx. 40). */
+  function isSkip(t) { return /^(omitir|skip|no se|paso|despues|later)/.test(norm(t)); }
+  function parseUse(t, l) {
+    var n = norm(t), en = l === 'en';
+    var work = /(trabajo|chamba|work|job|negocio|business)/.test(n);
+    var fam = /(familia|family|hijos|kids)/.test(n);
+    if (work && fam) return en ? 'work and family' : 'trabajo y familia';
+    if (work) return en ? 'work' : 'trabajo';
+    if (fam) return en ? 'family' : 'familia';
+    return t.slice(0, 40);
+  }
+  function parseTime(t, l) {
+    var n = norm(t), en = l === 'en';
+    if (/(manana|morning)/.test(n)) return en ? 'morning' : 'mañana';
+    if (/(tarde|afternoon)/.test(n)) return en ? 'afternoon' : 'tarde';
+    if (/(noche|evening|night)/.test(n)) return en ? 'evening' : 'noche';
+    return t.slice(0, 40);
   }
 
   function fichaLink(d, l) {
@@ -382,8 +416,8 @@
       if (dg.length < 7 || dg.length > 15) return { state: st, reply: txt.badPhone, done: false };
       d.phone = dg;
       if (d.vehicle) {
-        st.step = 'review';
-        return { state: st, reply: txt.review(d), done: false };
+        st.step = 'use';
+        return { state: st, reply: txt.askUse, done: false };
       }
       st.step = 'vehicle';
       return { state: st, reply: txt.askVehicle, done: false };
@@ -392,6 +426,16 @@
       var found = findVehicle(t, vehicles());
       d.vehicle = found ? vName(found) : (t.length > 60 ? t.slice(0, 60) : t);
       if (!d.vehicle) return { state: st, reply: txt.askVehicle, done: false };
+      st.step = 'use';
+      return { state: st, reply: txt.askUse, done: false };
+    }
+    if (st.step === 'use') {
+      if (t && !isSkip(t)) d.use = parseUse(t, l);
+      st.step = 'time';
+      return { state: st, reply: txt.askTime, done: false };
+    }
+    if (st.step === 'time') {
+      if (t && !isSkip(t)) d.time = parseTime(t, l);
       st.step = 'review';
       return { state: st, reply: txt.review(d), done: false };
     }
