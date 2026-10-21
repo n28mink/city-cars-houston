@@ -4,7 +4,7 @@
 
 ### Los puntos clave para crear clientes nuevos
 
-- **Velocidad, pero con sustancia.** Responder en minutos es la dirección correcta; el objetivo razonable es una primera respuesta humana y personalizada en menos de 10 minutos dentro del horario de 9 am a 8 pm. Es una hipótesis para validar con datos propios, no un resultado probado.
+- **Velocidad, pero con sustancia.** Responder en minutos es la dirección correcta; el objetivo razonable es una primera respuesta humana y personalizada en menos de 10 minutos dentro del horario de 10 am a 8 pm. Es una hipótesis para validar con datos propios, no un resultado probado.
 - **Pocas preguntas, una por mensaje, con permiso.** Preguntar por necesidad (uso, personas, fecha, quién decide), nunca por montos.
 - **Tratar cada duda como falta de certeza** en uno de tres puntos: el vehículo, la persona que atiende o la empresa y sus dealers. Responder con hechos verificables, no con "cierres".
 - **Transparencia de proceso en lugar de precios.** Quién es City Cars, qué hace el dealer, qué no se pide por chat y qué sigue. Es lo que más necesita un comprador desconfiado.
@@ -316,9 +316,9 @@ Todo lo que sigue es **[Inferencia]** adaptada de las fuentes citadas: ningún g
 
 **Paso 0 — Preparar la WhatsApp Business App.** Perfil con datos reales de contacto, mensaje de saludo, mensaje de ausencia, respuestas rápidas y etiquetas. Saludo propuesto:
 
-> ¡Hola! Gracias por escribir a City Cars Houston TX. Somos un puente entre compradores de Houston y dealers con licencia en Texas; no somos el dealer ni un prestamista. Te contesta una persona, todos los días de 9 am a 8 pm. Puedes escribir en español o en inglés. Si ya viste un carro en el sitio, mándame su código (por ejemplo, CCH-xx) y lo revisamos juntos. Si prefieres que no te escribamos por aquí, avísanos y dejamos de hacerlo.
+> ¡Hola! Gracias por escribir a City Cars Houston TX. Somos un puente entre compradores de Houston y dealers con licencia en Texas; no somos el dealer ni un prestamista. Te contesta una persona, todos los días de 10 am a 8 pm. Puedes escribir en español o en inglés. Si ya viste un carro en el sitio, mándame su código (por ejemplo, CCH-xx) y lo revisamos juntos. Si prefieres que no te escribamos por aquí, avísanos y dejamos de hacerlo.
 
-Ausencia: *"Gracias por escribirnos. Ahora estamos fuera de horario (atendemos todos los días de 9 am a 8 pm). Te respondemos en cuanto abramos. Si quieres adelantar, cuéntanos qué carro viste y para qué lo necesitas."*
+Ausencia: *"Gracias por escribirnos. Ahora estamos fuera de horario (atendemos todos los días de 10 am a 8 pm). Te respondemos en cuanto abramos. Si quieres adelantar, cuéntanos qué carro viste y para qué lo necesitas."*
 
 **Paso 1 — Primera respuesta humana, en minutos.** Cubre las tres certezas de Belfort de un golpe: el producto (el carro que miró), tú (nombre, horario) y la empresa (el modelo puente). Una nota de voz de 15–20 segundos aporta el único tono real que existe en este canal. Mensaje, cuando el cliente llega desde una ficha con su mensaje precargado:
 
@@ -397,7 +397,7 @@ Lo respalda la evidencia sobre exceso de opciones (el efecto promedio es cercano
 - **Entrada por necesidad, no por inventario:** 4–6 puertas ("Familia grande, 3 filas", "Pickup para trabajo", "Sedán para ir al trabajo", "SUV 4x4 confirmado en foto"), usando campos que el esquema ya tiene. Las categorías ayudan a quien no conoce el dominio ([Mogilner, Rudnick e Iyengar, 2008](https://ideas.repec.org/a/oup/jconrs/v35y2008i2p202-215.html)).
 - **Mostrar primero un bloque pequeño (≈6–12)** con "Ver más" y filtros simples; las etiquetas "ideal para…" y "lo que se ve en la foto" sustituyen la comparación por precio por una comparación por ajuste.
 - **Dos botones, no diez:** por tarjeta, "Preguntar por este carro" con mensaje precargado que incluya el código CCH-xx y el idioma de la página; y uno global y persistente, "No sé cuál elegir: cuéntanos qué necesitas y te sugerimos 2–3 opciones". El segundo traslada la curación a una persona, la solución más sólida cuando la preferencia es incierta. El botón debe verse al terminar de mirar una ficha (Fogg: facilitar en el momento de mayor motivación). Enlace construido con `new URL()` más `searchParams` y `rel="noopener noreferrer"`, como pide el proyecto. Si el asistente del sitio ya guía al visitante, puede recoger las mismas 3 preguntas del paso 2 y armar un mensaje precargado más completo, sin pedir datos sensibles.
-- **Bloque de proceso en tres pasos y sin precios:** "1. Dinos qué necesitas. 2. Te conectamos con un dealer con licencia en Texas. 3. Hablas con el dealer y decides tú." Con quién eres (no dealer ni prestamista), horario de 9 am a 8 pm y tiempo de respuesta real.
+- **Bloque de proceso en tres pasos y sin precios:** "1. Dinos qué necesitas. 2. Te conectamos con un dealer con licencia en Texas. 3. Hablas con el dealer y decides tú." Con quién eres (no dealer ni prestamista), horario de 10 am a 8 pm y tiempo de respuesta real.
 - **Honestidad en disponibilidad:** "Confirmamos disponibilidad por WhatsApp"; nada de "últimas unidades", cuentas regresivas ni etiquetas de "popular" sin dato real.
 - **Frase aprobada sobre ITIN y crédito** cerca del botón, con su aclaración en el mismo idioma [REVISAR CON ABOGADO].
 - **Paridad real entre español e inglés** en limitaciones y avisos; botón para reenviar la ficha a la familia por WhatsApp.
