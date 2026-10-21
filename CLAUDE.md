@@ -4,7 +4,7 @@
 City Cars Houston TX NO es un dealer ni un prestamista. Es un puente entre compradores de Houston
 (hispanos y angloparlantes) y muchos dealers con licencia en Texas. El sitio muestra un catálogo
 amplio sin cotizaciones ni montos: solo la descripción de cada vehículo (año, millas, tipo, equipamiento).
-Toda la conversión va a WhatsApp (+1 281 602 7044, horario 9 am–8 pm todos los días).
+Toda la conversión va a WhatsApp (+1 281 602 7044, horario 10 am–8 pm todos los días).
 No hay backend ni base de datos.
 
 ## Estado actual (octubre 2026)

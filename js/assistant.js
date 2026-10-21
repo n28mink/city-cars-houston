@@ -204,7 +204,7 @@
         'Trabajamos con <b>dealers con licencia en Houston, TX</b>. Cuando eliges un vehículo, te conectamos con el dealer para que vayas a verlo.',
       ],
       hours: [
-        'No tenemos un horario fijo publicado: escríbenos por WhatsApp cuando quieras 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">aquí</a> y te respondemos.',
+        'Atendemos todos los días de 10 am a 8 pm. Escríbenos por WhatsApp 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">aquí</a> y te respondemos.',
       ],
       fallback: [
         'Mmm, de eso no tengo el dato exacto. Puedo mostrarte el inventario, detalles de cada vehículo, cómo funciona el puente o tomarte tus datos. ¿Qué te gustaría?',
@@ -283,7 +283,7 @@
         'We work with <b>licensed dealers in Houston, TX</b>. When you pick a vehicle, we connect you with the dealer so you can go see it.',
       ],
       hours: [
-        'We don\'t have fixed published hours: message us on WhatsApp anytime 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">here</a> and we\'ll reply.',
+        'We\'re available every day from 10 am to 8 pm. Message us on WhatsApp 👉 <a href="' + WA_LINK + '" target="_blank" rel="noopener">here</a> and we\'ll reply.',
       ],
       fallback: [
         'Hmm, I don\'t have the exact info on that. I can show you the inventory, details on each vehicle, how the bridge works, or take your info. What would you like?',
